@@ -38,9 +38,11 @@ const app = createApp({
         const isDeletingClient = ref(false);
         const newClientId = ref('');
         const serverPort = ref(getServerPort());
+        const clientsForSort = ref([]);
+        const isSortingClients = ref(false);
 
         // 模态框实例
-        let loginModal, settingsModal, addClientModal, deleteClientModal, clientIdModal;
+        let loginModal, settingsModal, addClientModal, deleteClientModal, clientIdModal, sortClientsModal;
 
         // 初始化Bootstrap模态框
         const initModals = () => {
@@ -49,6 +51,7 @@ const app = createApp({
             addClientModal = new bootstrap.Modal(document.getElementById('addClientModal'));
             deleteClientModal = new bootstrap.Modal(document.getElementById('deleteClientModal'));
             clientIdModal = new bootstrap.Modal(document.getElementById('clientIdModal'));
+            sortClientsModal = new bootstrap.Modal(document.getElementById('sortClientsModal'));
         };
 
         // 拖拽选项
@@ -97,8 +100,19 @@ const app = createApp({
                     credentials: 'include' // 确保发送Cookie
                 });
                 
-                const data = await response.json();
+                let data = await response.json();
                 console.log('获取到客户端数据:', data);
+                
+                // 立即按displayOrder排序，避免闪烁
+                const hasDisplayOrder = data.some(client => client.displayOrder !== undefined);
+                if (hasDisplayOrder) {
+                    data.sort((a, b) => {
+                        if (a.displayOrder === undefined) return 1;
+                        if (b.displayOrder === undefined) return -1;
+                        return a.displayOrder - b.displayOrder;
+                    });
+                    console.log('初始加载时按displayOrder排序');
+                }
                 
                 // 如果已登录但数据中没有ID，可能是服务器端会话已过期
                 if (isLoggedIn.value && data.length > 0 && !data.some(client => client.id)) {
@@ -144,7 +158,44 @@ const app = createApp({
                 const response = await fetch('/api/clients', {
                     credentials: 'include'  // 确保发送Cookie
                 });
-                const data = await response.json();
+                let data = await response.json();
+                
+                // 先检查是否有客户端具有displayOrder字段
+                const hasDisplayOrder = data.some(client => client.displayOrder !== undefined);
+                
+                if (hasDisplayOrder) {
+                    // 按displayOrder排序（服务器端的排序字段）
+                    data.sort((a, b) => {
+                        if (a.displayOrder === undefined) return 1;
+                        if (b.displayOrder === undefined) return -1;
+                        return a.displayOrder - b.displayOrder;
+                    });
+                    console.log('使用服务器返回的displayOrder排序');
+                } 
+                // 如果无法从服务器获取排序信息，则保持本地排序
+                else if (clients.value.length > 0) {
+                    // 创建ID到索引的映射
+                    const orderMap = {};
+                    clients.value.forEach((client, index) => {
+                        if (client.id) {
+                            orderMap[client.id] = index;
+                        }
+                    });
+                    
+                    data.sort((a, b) => {
+                        if (a.id in orderMap && b.id in orderMap) {
+                            return orderMap[a.id] - orderMap[b.id];
+                        } else if (a.id in orderMap) {
+                            return -1;
+                        } else if (b.id in orderMap) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    console.log('使用本地排序顺序');
+                }
+                
+                // 更新客户端列表
                 clients.value = data;
             } catch (error) {
                 console.error('获取客户端信息失败:', error);
@@ -153,8 +204,67 @@ const app = createApp({
 
         // 开始实时更新
         const startRealTimeUpdates = () => {
-            // 每秒更新一次客户端数据
-            setInterval(fetchClients, 1000);
+            // 初始数据加载完成的标志
+            let initialDataLoaded = false;
+            
+            // 每1秒更新一次客户端数据，保证实时性但不影响排序
+            setInterval(async () => {
+                // 确保初始数据已经排序好后再开始更新
+                if (!initialDataLoaded && clients.value.length > 0) {
+                    initialDataLoaded = true;
+                    console.log('初始数据已加载，开始实时更新');
+                }
+                
+                if (!initialDataLoaded) {
+                    return; // 如果初始数据还未加载完成，不执行更新
+                }
+                
+                // 直接获取数据但不立即更新视图
+                try {
+                    const response = await fetch('/api/clients', {
+                        credentials: 'include'  // 确保发送Cookie
+                    });
+                    let newData = await response.json();
+                    
+                    // 先检查是否有客户端具有displayOrder字段
+                    const hasDisplayOrder = newData.some(client => client.displayOrder !== undefined);
+                    
+                    if (hasDisplayOrder) {
+                        // 按displayOrder排序（服务器端的排序字段）
+                        newData.sort((a, b) => {
+                            if (a.displayOrder === undefined) return 1;
+                            if (b.displayOrder === undefined) return -1;
+                            return a.displayOrder - b.displayOrder;
+                        });
+                    } 
+                    // 如果无法从服务器获取排序信息，则保持本地排序
+                    else if (clients.value.length > 0) {
+                        // 创建ID到索引的映射
+                        const orderMap = {};
+                        clients.value.forEach((client, index) => {
+                            if (client.id) {
+                                orderMap[client.id] = index;
+                            }
+                        });
+                        
+                        newData.sort((a, b) => {
+                            if (a.id in orderMap && b.id in orderMap) {
+                                return orderMap[a.id] - orderMap[b.id];
+                            } else if (a.id in orderMap) {
+                                return -1;
+                            } else if (b.id in orderMap) {
+                                return 1;
+                            }
+                            return 0;
+                        });
+                    }
+                    
+                    // 更新客户端数据
+                    clients.value = newData;
+                } catch (error) {
+                    console.error('更新客户端数据失败:', error);
+                }
+            }, 1000);
         };
 
         // 根据使用率获取进度条样式
@@ -467,11 +577,18 @@ const app = createApp({
             // 如果不是登录状态，不处理排序
             if (!isLoggedIn.value) return;
             
+            // 更新客户端数组中的displayOrder字段
+            clients.value.forEach((client, index) => {
+                if (client.id) {
+                    client.displayOrder = index + 1;
+                }
+            });
+            
             // 生成排序映射
             const orders = {};
             clients.value.forEach((client, index) => {
                 if (client.id) {
-                    orders[client.id] = index + 1;
+                    orders[client.id] = index + 1; // 排序从1开始
                 }
             });
             
@@ -487,21 +604,113 @@ const app = createApp({
                         orders: orders
                     })
                 });
+                console.log('拖拽排序已保存到服务器');
             } catch (error) {
                 console.error('更新排序失败:', error);
             }
         };
 
+        // 显示排序模态框
+        const showSortClientsModal = () => {
+            // 克隆客户端数据
+            clientsForSort.value = clients.value.map(client => ({...client}));
+            
+            // 在下一个事件循环中显示模态框，确保数据更新
+            setTimeout(() => {
+                sortClientsModal.show();
+            }, 0);
+        };
+
+        // 保存客户端排序
+        const saveClientOrder = async () => {
+            isSortingClients.value = true;
+            
+            try {
+                // 生成排序映射 - 将索引作为displayOrder值
+                const orders = {};
+                clientsForSort.value.forEach((client, index) => {
+                    if (client.id) {
+                        orders[client.id] = index + 1; // 排序从1开始
+                    }
+                });
+                
+                // 发送排序更新请求
+                const response = await fetch('/api/clients/reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include', // 确保发送Cookie
+                    body: JSON.stringify({
+                        orders: orders
+                    })
+                });
+                
+                if (response.ok) {
+                    // 更新主界面的排序
+                    // 1. 保留原有数据的最新值
+                    const clientMap = {};
+                    clients.value.forEach(client => {
+                        if (client.id) clientMap[client.id] = { ...client };
+                    });
+                    
+                    // 2. 使用排序后的ID顺序创建新数组
+                    const newClientsArray = clientsForSort.value.map((sortClient, index) => {
+                        if (sortClient.id && clientMap[sortClient.id]) {
+                            // 返回最新数据，同时更新displayOrder
+                            return { 
+                                ...clientMap[sortClient.id],
+                                displayOrder: index + 1 // 确保displayOrder字段与新排序一致
+                            };
+                        }
+                        return { ...sortClient, displayOrder: index + 1 };
+                    });
+                    
+                    // 3. 更新客户端数组
+                    clients.value = newClientsArray;
+                    sortClientsModal.hide();
+                    console.log('排序已保存并应用，重新加载页面或重新登录后仍会保持此排序');
+                }
+            } catch (error) {
+                console.error('保存排序失败:', error);
+            } finally {
+                isSortingClients.value = false;
+            }
+        };
+
+        // 向上移动项目
+        const moveItemUp = (index) => {
+            if (index <= 0) return;
+            const temp = clientsForSort.value[index];
+            clientsForSort.value[index] = clientsForSort.value[index - 1];
+            clientsForSort.value[index - 1] = temp;
+        };
+
+        // 向下移动项目
+        const moveItemDown = (index) => {
+            if (index >= clientsForSort.value.length - 1) return;
+            const temp = clientsForSort.value[index];
+            clientsForSort.value[index] = clientsForSort.value[index + 1];
+            clientsForSort.value[index + 1] = temp;
+        };
+
         // 组件挂载完成后执行
         onMounted(() => {
+            // 初始化模态框
             initModals();
             
-            // 首次加载时给一点延迟，确保所有组件加载完成
-            setTimeout(() => {
-                checkLoginStatus();
-            }, 100);
+            // 异步加载数据并启动实时更新
+            const initApp = async () => {
+                console.log('开始初始化应用...');
+                // 先检查登录状态并获取初始数据
+                await checkLoginStatus();
+                // 确保数据加载完成后才启动实时更新
+                startRealTimeUpdates();
+                console.log('应用初始化完成');
+            };
             
-            startRealTimeUpdates();
+            // 执行初始化
+            initApp();
         });
 
         return {
@@ -522,6 +731,8 @@ const app = createApp({
             isDeletingClient,
             newClientId,
             serverPort,
+            clientsForSort,
+            isSortingClients,
             dragOptions,
             getProgressBarClass,
             showLoginModal,
@@ -534,7 +745,11 @@ const app = createApp({
             confirmDeleteClient,
             deleteClient,
             copyClientId,
-            onDragChange
+            onDragChange,
+            showSortClientsModal,
+            saveClientOrder,
+            moveItemUp,
+            moveItemDown
         };
     }
 });

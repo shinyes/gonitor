@@ -10,9 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        [v-cloak] { display: none; }
+    </style>
 </head>
 <body>
-    <div class="wrapper" id="app">
+    <div class="wrapper" id="app" v-cloak>
         <header class="navbar navbar-dark px-4 py-3">
             <div class="container-fluid d-flex justify-content-between align-items-center">
                 <a class="navbar-brand d-flex align-items-center" href="#">
@@ -29,6 +32,7 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                             <li><a class="dropdown-item" href="#" @click="showAddClientModal"><i class="bi bi-plus-circle-fill me-2"></i>添加客户端</a></li>
+                            <li><a class="dropdown-item" href="#" @click="showSortClientsModal"><i class="bi bi-sort-down me-2"></i>排序客户端</a></li>
                             <li><a class="dropdown-item" href="#" @click="showSettingsModal"><i class="bi bi-gear-fill me-2"></i>账号设置</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" @click="logout"><i class="bi bi-box-arrow-right me-2"></i>登出</a></li>
@@ -269,6 +273,50 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 客户端排序模态框 -->
+        <div class="modal fade" id="sortClientsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-sort-down me-2"></i>排序客户端</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>使用上下按钮调整客户端显示顺序：</p>
+                        <div class="manual-sort-list">
+                            <div v-for="(item, index) in clientsForSort" 
+                                 :key="item.id" 
+                                 class="sort-item">
+                                <div class="sort-content">
+                                    <div class="status-badge small-badge" :class="{'connected': item.connected}"></div>
+                                    <span class="sort-name">{{ item.name }}</span>
+                                </div>
+                                <div class="sort-actions">
+                                    <button class="btn btn-sm btn-icon" 
+                                            @click="moveItemUp(index)" 
+                                            :disabled="index === 0">
+                                        <i class="bi bi-arrow-up"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-icon" 
+                                            @click="moveItemDown(index)" 
+                                            :disabled="index === clientsForSort.length - 1">
+                                        <i class="bi bi-arrow-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" @click="saveClientOrder" :disabled="isSortingClients">
+                            <span v-if="isSortingClients" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            保存排序
+                        </button>
                     </div>
                 </div>
             </div>

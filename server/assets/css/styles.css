@@ -322,4 +322,92 @@ body {
 
 .sortable-chosen {
     box-shadow: 0 0 15px rgba(67, 97, 238, 0.3);
+    opacity: 0.8;
+}
+
+/* 排序列表样式 */
+.sort-list {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    border: 1px solid var(--secondary);
+    border-radius: 6px;
+    padding: 0;
+    list-style: none;
+}
+
+.sort-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--secondary);
+    cursor: move;
+    transition: background-color 0.2s;
+}
+
+.sort-item:hover {
+    background-color: #f5f8ff;
+}
+
+.sort-item:active {
+    background-color: #e9effd;
+    cursor: grabbing;
+}
+
+.sort-item:last-child {
+    border-bottom: none;
+}
+
+.sort-handle {
+    color: var(--gray);
+    padding-right: 12px;
+    cursor: grab;
+}
+
+.sort-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.small-badge {
+    width: 8px;
+    height: 8px;
+    margin-right: 10px;
+}
+
+.sort-name {
+    font-weight: 500;
+}
+
+.dragging {
+    opacity: 0.8;
+    background-color: var(--primary);
+    color: white;
+    transform: rotate(1deg);
+}
+
+/* 手动排序列表样式 */
+.manual-sort-list {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    border: 1px solid var(--secondary);
+    border-radius: 6px;
+}
+
+.sort-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.sort-actions .btn-icon {
+    padding: 3px 6px;
+    color: var(--primary);
+}
+
+.sort-actions .btn-icon:disabled {
+    color: var(--gray);
+    opacity: 0.5;
 } 
