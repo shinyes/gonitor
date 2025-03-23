@@ -156,7 +156,7 @@ body {
 }
 
 .server-card-header {
-    padding: 1rem;
+    padding: 0.6rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -183,12 +183,12 @@ body {
 }
 
 .server-card-body {
-    padding: 1rem;
+    padding: 0.6rem;
 }
 
 /* Metrics */
 .metric {
-    margin-bottom: 1rem;
+    margin-bottom: 0.6rem;
 }
 
 .metric:last-child {
@@ -198,21 +198,23 @@ body {
 .metric-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.2rem;
 }
 
 .metric-name {
     font-weight: 500;
     color: var(--dark);
+    font-size: 0.85rem;
 }
 
 .metric-value {
     font-weight: 600;
+    font-size: 0.85rem;
 }
 
 /* Progress Bars */
 .progress {
-    height: 8px;
+    height: 5px;
     background-color: var(--secondary);
     border-radius: 4px;
     overflow: hidden;
@@ -412,31 +414,31 @@ body {
     }
     
     .server-card-header {
-        padding: 0.75rem;
+        padding: 0.6rem;
     }
     
     .server-card-body {
-        padding: 0.75rem;
+        padding: 0.6rem;
     }
     
     .metric {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.6rem;
     }
     
     /* 紧凑的进度条 */
     .progress {
-        height: 6px;
+        height: 5px;
     }
     
     /* 紧凑的状态标志 */
     .status-badge {
-        width: 8px;
-        height: 8px;
+        width: 7px;
+        height: 7px;
     }
     
     /* 调整标题和内容间距 */
     .metric-header {
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.2rem;
     }
     
     /* 控制内容区域内边距 */
@@ -452,7 +454,12 @@ body {
     
     /* 调整字体大小 */
     .server-name {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
+        margin: 0 0 0 0.5rem;
+    }
+    
+    .metric-name, .metric-value {
+        font-size: 0.85rem;
     }
     
     .navbar-brand {
@@ -467,16 +474,42 @@ body {
 /* 更小屏幕的额外调整 */
 @media (max-width: 480px) {
     .server-grid {
-        gap: 0.5rem;
+        gap: 0.4rem;
     }
     
     .container-fluid {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
     }
     
     .navbar-brand {
         font-size: 1.1rem;
+    }
+    
+    .server-card-header {
+        padding: 0.5rem;
+    }
+    
+    .server-card-body {
+        padding: 0.5rem;
+    }
+    
+    .metric {
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-icon {
+        padding: 0.2rem;
+    }
+    
+    .server-name {
+        font-size: 1rem;
+        margin: 0 0 0 0.4rem;
+    }
+    
+    .status-badge {
+        width: 6px;
+        height: 6px;
     }
 }
 

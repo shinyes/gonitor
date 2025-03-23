@@ -37,7 +37,23 @@ func main() {
 	log.Printf("客户端启动，连接到服务器：%s，客户端ID：%s", *serverAddr, *clientID)
 
 	// 构造WebSocket URL
-	u := url.URL{Scheme: "ws", Host: *serverAddr, Path: "/ws", RawQuery: fmt.Sprintf("id=%s", *clientID)}
+	wsScheme := "ws"
+	serverURL := *serverAddr
+
+	// 检查服务器地址是否包含协议前缀
+	if len(serverURL) >= 8 && serverURL[:8] == "https://" {
+		wsScheme = "wss"
+		serverURL = serverURL[8:]
+	} else if len(serverURL) >= 7 && serverURL[:7] == "http://" {
+		serverURL = serverURL[7:]
+	}
+
+	// 删除末尾的斜杠
+	if len(serverURL) > 0 && serverURL[len(serverURL)-1] == '/' {
+		serverURL = serverURL[:len(serverURL)-1]
+	}
+
+	u := url.URL{Scheme: wsScheme, Host: serverURL, Path: "/ws", RawQuery: fmt.Sprintf("id=%s", *clientID)}
 	log.Printf("连接到 %s", u.String())
 
 	// 连接到服务器
@@ -123,14 +139,22 @@ func collectMetrics() (Metrics, error) {
 func reconnect(serverUrl string) {
 	for {
 		log.Println("尝试重新连接服务器...")
-		conn, _, err := websocket.DefaultDialer.Dial(serverUrl, nil)
-		if err != nil {
-			log.Printf("重新连接失败: %v，5秒后重试", err)
-			time.Sleep(5 * time.Second)
-			continue
+
+		// 如果URL已经是正确的WebSocket格式(以ws://或wss://开头)，直接使用
+		if len(serverUrl) >= 5 && (serverUrl[:5] == "ws://" || serverUrl[:6] == "wss://") {
+			conn, _, err := websocket.DefaultDialer.Dial(serverUrl, nil)
+			if err != nil {
+				log.Printf("重新连接失败: %v，5秒后重试", err)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			log.Println("成功重新连接到服务器")
+			conn.Close() // 关闭连接，让main函数重新启动连接循环
+			os.Exit(0)   // 退出当前进程，由系统或守护进程重启
 		}
-		log.Println("成功重新连接到服务器")
-		conn.Close() // 关闭连接，让main函数重新启动连接循环
-		os.Exit(0)   // 退出当前进程，由系统或守护进程重启
+
+		// 否则，应该是新的连接尝试，重启应用程序以重用主函数中的URL处理逻辑
+		log.Println("URL格式需要重新处理，重启应用程序...")
+		os.Exit(1) // 使用非零退出码以便监控系统知道这是一个错误
 	}
 }
