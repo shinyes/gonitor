@@ -31,7 +31,6 @@ type User struct {
 type Client struct {
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
-	IP           string    `json:"ip"`
 	Connected    bool      `json:"connected"`
 	LastSeen     time.Time `json:"lastSeen"`
 	CPU          float64   `json:"cpu"`
@@ -371,14 +370,6 @@ func handleGetClients(w http.ResponseWriter, r *http.Request) {
 	// 只有当Cookie存在、不为空时才认为用户已登录
 	isLoggedIn = (err == nil && cookie != nil && cookie.Value != "")
 
-	// 打印更详细的Cookie信息便于调试
-	if err != nil {
-		log.Printf("GetClients请求 - 未找到Cookie, 错误: %v", err)
-	} else if cookie != nil {
-		log.Printf("GetClients请求 - Cookie存在: 名称=%s, 值=%s, 路径=%s",
-			cookie.Name, cookie.Value, cookie.Path)
-	}
-
 	log.Printf("GetClients请求 - 最终登录状态: %v", isLoggedIn)
 
 	// 如果未登录，不返回客户端ID
@@ -553,7 +544,6 @@ func handleClientConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 更新客户端连接信息
-	remoteAddr := conn.RemoteAddr().String()
 	clientDB.mu.Lock()
 	if oldConn, ok := clientDB.conns[clientID]; ok {
 		oldConn.Close()
@@ -567,11 +557,10 @@ func handleClientConnection(w http.ResponseWriter, r *http.Request) {
 	}
 	client.Connected = true
 	client.LastSeen = time.Now()
-	client.IP = remoteAddr
 	clientDB.clients[clientID] = client
 	clientDB.mu.Unlock()
 
-	log.Printf("客户端 %s 已连接，IP：%s", clientID, remoteAddr)
+	log.Printf("客户端 %s 已连接", clientID)
 
 	// 启动一个goroutine处理WebSocket消息
 	go handleClientMessages(conn, clientID)
