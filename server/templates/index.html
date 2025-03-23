@@ -20,9 +20,6 @@
                     <span>服务器监控</span>
                 </a>
                 <div class="d-flex align-items-center gap-3">
-                    <div v-if="isLoggedIn" class="user-info">
-                        <span class="text-light">{{ username }}</span>
-                    </div>
                     <button v-if="!isLoggedIn" @click="showLoginModal" class="btn btn-login">
                         <i class="bi bi-box-arrow-in-right me-1"></i>登录
                     </button>
