@@ -136,6 +136,10 @@
                                                 </div>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" href="#" @click="showRenameClientModal(element)">
+                                                <i class="bi bi-pencil-fill me-2"></i>重命名
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-danger" href="#" @click="confirmDeleteClient(element)">
                                                 <i class="bi bi-trash3-fill"></i>删除
                                             </a></li>
@@ -358,35 +362,55 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>使用上下按钮调整客户端显示顺序：</p>
-                        <div class="manual-sort-list">
-                            <div v-for="(item, index) in clientsForSort" 
-                                 :key="item.id" 
-                                 class="sort-item">
+                        <p>拖动客户端或使用上下按钮调整显示顺序。</p>
+                        <ul class="manual-sort-list list-group">
+                            <li v-for="(client, index) in clientsForSort" :key="client.id" class="sort-item list-group-item d-flex align-items-center">
                                 <div class="sort-content">
-                                    <div class="status-badge small-badge" :class="{'connected': item.connected}"></div>
-                                    <span class="sort-name">{{ item.name }}</span>
+                                    <div class="small-badge status-badge" :class="{'connected': client.connected}"></div>
+                                    <span class="sort-name">{{ client.name }}</span>
                                 </div>
                                 <div class="sort-actions">
-                                    <button class="btn btn-sm btn-icon" 
-                                            @click="moveItemUp(index)" 
-                                            :disabled="index === 0">
+                                    <button class="btn btn-icon" @click="moveItemUp(index)" :disabled="index === 0">
                                         <i class="bi bi-arrow-up"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-icon" 
-                                            @click="moveItemDown(index)" 
-                                            :disabled="index === clientsForSort.length - 1">
+                                    <button class="btn btn-icon" @click="moveItemDown(index)" :disabled="index === clientsForSort.length - 1">
                                         <i class="bi bi-arrow-down"></i>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
+                            </li>
+                        </ul>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary" @click="saveClientOrder" :disabled="isSortingClients">
                             <span v-if="isSortingClients" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                            保存排序
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 客户端重命名模态框 -->
+        <div class="modal fade" id="renameClientModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-pencil-fill me-2"></i>重命名客户端</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" v-if="clientToRename">
+                        <div class="mb-3">
+                            <label for="renameClientName" class="form-label">客户端名称</label>
+                            <input type="text" class="form-control" id="renameClientName" v-model="renameForm.name">
+                        </div>
+                        <div class="alert alert-danger" v-if="renameError">{{ renameError }}</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" @click="renameClient" :disabled="isRenaming">
+                            <span v-if="isRenaming" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            保存
                         </button>
                     </div>
                 </div>

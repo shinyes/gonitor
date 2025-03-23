@@ -1,12 +1,32 @@
 {
   "client_1742721409156398400": {
     "id": "client_1742721409156398400",
-    "name": "local",
+    "name": "abc",
     "connected": false,
     "lastSeen": "2025-03-23T21:30:41.16443+08:00",
     "cpu": 9.58904109589041,
     "memory": 50,
     "diskUsage": 65.41204650291515,
     "displayOrder": 1
+  },
+  "client_1742739702604659800": {
+    "id": "client_1742739702604659800",
+    "name": "test",
+    "connected": false,
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "cpu": 0,
+    "memory": 0,
+    "diskUsage": 0,
+    "displayOrder": 2
+  },
+  "client_1742739706994228400": {
+    "id": "client_1742739706994228400",
+    "name": "b",
+    "connected": false,
+    "lastSeen": "0001-01-01T00:00:00Z",
+    "cpu": 0,
+    "memory": 0,
+    "diskUsage": 0,
+    "displayOrder": 3
   }
 }

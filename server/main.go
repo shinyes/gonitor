@@ -99,6 +99,7 @@ func main() {
 	http.HandleFunc("/api/clients/add", handleAddClient)
 	http.HandleFunc("/api/clients/delete", handleDeleteClient)
 	http.HandleFunc("/api/clients/reorder", handleReorderClients)
+	http.HandleFunc("/api/clients/rename", handleRenameClient)
 
 	// WebSocket 路由处理客户端连接
 	http.HandleFunc("/ws", handleClientConnection)
@@ -531,6 +532,12 @@ func handleDeleteClient(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
+// checkAuth 检查用户是否已登录
+func checkAuth(r *http.Request) bool {
+	_, err := r.Cookie("session")
+	return err == nil
+}
+
 // handleReorderClients 重新排序客户端
 func handleReorderClients(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -538,9 +545,8 @@ func handleReorderClients(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 检查是否已登录
-	_, err := r.Cookie("session")
-	if err != nil {
+	// 检查用户是否已登录
+	if !checkAuth(r) {
 		http.Error(w, "未授权", http.StatusUnauthorized)
 		return
 	}
@@ -566,6 +572,62 @@ func handleReorderClients(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
+// handleRenameClient 重命名客户端
+func handleRenameClient(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "方法不允许", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 检查用户是否已登录
+	if !checkAuth(r) {
+		http.Error(w, "未授权", http.StatusUnauthorized)
+		return
+	}
+
+	var renameInfo struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&renameInfo); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// 验证输入
+	if renameInfo.ID == "" {
+		http.Error(w, "客户端ID不能为空", http.StatusBadRequest)
+		return
+	}
+
+	if renameInfo.Name == "" {
+		http.Error(w, "客户端名称不能为空", http.StatusBadRequest)
+		return
+	}
+
+	clientDB.mu.Lock()
+	// 检查客户端是否存在
+	client, exists := clientDB.clients[renameInfo.ID]
+	if !exists {
+		clientDB.mu.Unlock()
+		http.Error(w, "客户端不存在", http.StatusNotFound)
+		return
+	}
+
+	// 更新客户端名称
+	client.Name = renameInfo.Name
+	clientDB.mu.Unlock()
+
+	// 保存更改
+	saveClients()
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "success",
+	})
 }
 
 // handleClientConnection 处理客户端WebSocket连接

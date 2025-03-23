@@ -50,9 +50,14 @@ const app = createApp({
             icon: 'bi-check-circle-fill',
             timer: null
         });
+        // 重命名相关状态
+        const clientToRename = ref(null);
+        const renameForm = reactive({ name: '' });
+        const renameError = ref('');
+        const isRenaming = ref(false);
 
         // 模态框实例
-        let loginModal, settingsModal, addClientModal, deleteClientModal, clientIdModal, sortClientsModal;
+        let loginModal, settingsModal, addClientModal, deleteClientModal, clientIdModal, sortClientsModal, renameClientModal;
 
         // 初始化Bootstrap模态框
         const initModals = () => {
@@ -62,6 +67,7 @@ const app = createApp({
             deleteClientModal = new bootstrap.Modal(document.getElementById('deleteClientModal'));
             clientIdModal = new bootstrap.Modal(document.getElementById('clientIdModal'));
             sortClientsModal = new bootstrap.Modal(document.getElementById('sortClientsModal'));
+            renameClientModal = new bootstrap.Modal(document.getElementById('renameClientModal'));
         };
 
         // 拖拽选项
@@ -778,6 +784,67 @@ const app = createApp({
             applyTheme(theme);
         };
 
+        // 显示重命名客户端模态框
+        const showRenameClientModal = (client) => {
+            clientToRename.value = client;
+            renameForm.name = client.name;
+            renameError.value = '';
+            isRenaming.value = false;
+            renameClientModal.show();
+        };
+        
+        // 重命名客户端
+        const renameClient = async () => {
+            // 验证名称
+            if (!renameForm.name.trim()) {
+                renameError.value = '请输入客户端名称';
+                return;
+            }
+            
+            // 设置加载状态
+            isRenaming.value = true;
+            renameError.value = '';
+            
+            try {
+                // 发送重命名请求
+                const response = await fetch('/api/clients/rename', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: clientToRename.value.id,
+                        name: renameForm.name.trim()
+                    }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // 更新本地客户端数据
+                    const clientIndex = clients.value.findIndex(c => c.id === clientToRename.value.id);
+                    if (clientIndex !== -1) {
+                        clients.value[clientIndex].name = renameForm.name.trim();
+                    }
+                    
+                    // 关闭模态框
+                    renameClientModal.hide();
+                    
+                    // 显示成功通知
+                    showNotification('客户端重命名成功', 'success');
+                } else {
+                    // 显示错误信息
+                    renameError.value = data.error || '重命名失败，请重试';
+                }
+            } catch (error) {
+                console.error('重命名客户端出错:', error);
+                renameError.value = '网络错误，请重试';
+            } finally {
+                isRenaming.value = false;
+            }
+        };
+
         // 初始化应用
         onMounted(() => {
             // 初始化模态框
@@ -826,6 +893,10 @@ const app = createApp({
             isSortingClients,
             currentTheme,
             notification,
+            clientToRename,
+            renameForm,
+            renameError,
+            isRenaming,
             dragOptions,
             getProgressBarClass,
             showLoginModal,
@@ -845,7 +916,9 @@ const app = createApp({
             moveItemDown,
             onDragChange,
             setTheme,
-            copyToClipboard
+            copyToClipboard,
+            showRenameClientModal,
+            renameClient
         };
     }
 });
