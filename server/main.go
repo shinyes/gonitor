@@ -261,19 +261,24 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	userDB.mu.RUnlock()
 
 	if credentials.Username != user.Username || credentials.Password != user.Password {
+		log.Printf("登录失败: 用户名或密码错误 (尝试: %s)", credentials.Username)
 		http.Error(w, "用户名或密码不正确", http.StatusUnauthorized)
 		return
 	}
 
 	// 在实际应用中应使用更安全的会话管理方式
 	session := fmt.Sprintf("session_%d", time.Now().UnixNano())
-	http.SetCookie(w, &http.Cookie{
+	cookie := &http.Cookie{
 		Name:     "session",
 		Value:    session,
 		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   3600 * 24, // 1天
-	})
+		HttpOnly: false,
+		MaxAge:   3600 * 24 * 7, // 7天
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, cookie)
+
+	log.Printf("用户 %s 登录成功，设置会话: %s，过期时间：%d秒", credentials.Username, session, cookie.MaxAge)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
@@ -345,14 +350,29 @@ func handleGetClients(w http.ResponseWriter, r *http.Request) {
 
 	// 检查是否登录，决定是否包含ID
 	var isLoggedIn bool
-	_, err := r.Cookie("session")
-	isLoggedIn = err == nil
+	cookie, err := r.Cookie("session")
+
+	// 只有当Cookie存在、不为空时才认为用户已登录
+	isLoggedIn = (err == nil && cookie != nil && cookie.Value != "")
+
+	// 打印更详细的Cookie信息便于调试
+	if err != nil {
+		log.Printf("GetClients请求 - 未找到Cookie, 错误: %v", err)
+	} else if cookie != nil {
+		log.Printf("GetClients请求 - Cookie存在: 名称=%s, 值=%s, 路径=%s",
+			cookie.Name, cookie.Value, cookie.Path)
+	}
+
+	log.Printf("GetClients请求 - 最终登录状态: %v", isLoggedIn)
 
 	// 如果未登录，不返回客户端ID
 	if !isLoggedIn {
 		for _, client := range clientList {
 			client.ID = ""
 		}
+		log.Println("用户未登录，隐藏所有客户端ID")
+	} else {
+		log.Println("用户已登录，显示所有客户端ID")
 	}
 
 	w.Header().Set("Content-Type", "application/json")

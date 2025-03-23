@@ -57,14 +57,70 @@ const app = createApp({
         // 检查登录状态
         const checkLoginStatus = async () => {
             try {
-                const response = await fetch('/api/clients');
-                const data = await response.json();
+                // 首先检查localStorage中是否有登录状态
+                const storedLoginStatus = localStorage.getItem('isLoggedIn');
+                const storedUsername = localStorage.getItem('username');
                 
-                // 检查是否有ID（只有登录用户才能看到ID）
-                if (data.length > 0 && data[0].id) {
+                if (storedLoginStatus === 'true' && storedUsername) {
+                    console.log('从localStorage恢复登录状态');
                     isLoggedIn.value = true;
-                    // 从cookie中获取用户名（实际项目中可能需要从服务器获取）
-                    username.value = 'admin';
+                    username.value = storedUsername;
+                } else {
+                    // 如果localStorage中没有，则检查Cookie
+                    const sessionCookie = getCookie('session');
+                    console.log('会话Cookie:', sessionCookie);
+                    
+                    if (sessionCookie) {
+                        isLoggedIn.value = true;
+                        username.value = 'admin'; // 默认管理员用户名
+                        console.log('通过Cookie检测到用户已登录');
+                        
+                        // 同步到localStorage
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('username', 'admin');
+                    } else {
+                        isLoggedIn.value = false;
+                        console.log('未检测到登录状态');
+                    }
+                }
+                
+                // 无论如何都获取客户端数据
+                const response = await fetch('/api/clients', {
+                    credentials: 'include' // 确保发送Cookie
+                });
+                
+                const data = await response.json();
+                console.log('获取到客户端数据:', data);
+                
+                // 如果已登录但数据中没有ID，可能是服务器端会话已过期
+                if (isLoggedIn.value && data.length > 0 && !data.some(client => client.id)) {
+                    console.log('服务器端会话可能已过期，需要重新登录');
+                    
+                    // 尝试自动重新登录一次
+                    const reloginResponse = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            username: username.value || 'admin',
+                            password: 'admin' // 使用默认密码尝试重新登录
+                        })
+                    });
+                    
+                    if (!reloginResponse.ok) {
+                        // 如果重新登录失败，清除登录状态
+                        isLoggedIn.value = false;
+                        username.value = '';
+                        localStorage.removeItem('isLoggedIn');
+                        localStorage.removeItem('username');
+                        console.log('重新登录失败，已清除登录状态');
+                    } else {
+                        console.log('自动重新登录成功');
+                        // 重新获取客户端数据
+                        await fetchClients();
+                    }
                 }
                 
                 // 更新客户端列表
@@ -77,7 +133,9 @@ const app = createApp({
         // 获取客户端数据
         const fetchClients = async () => {
             try {
-                const response = await fetch('/api/clients');
+                const response = await fetch('/api/clients', {
+                    credentials: 'include'  // 确保发送Cookie
+                });
                 const data = await response.json();
                 clients.value = data;
             } catch (error) {
@@ -121,6 +179,7 @@ const app = createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include', // 确保发送和接收Cookie
                     body: JSON.stringify({
                         username: loginForm.username,
                         password: loginForm.password
@@ -128,10 +187,33 @@ const app = createApp({
                 });
 
                 if (response.ok) {
+                    console.log('登录成功');
+                    
+                    // 同时在localStorage中保存登录状态
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('username', loginForm.username);
+                    
+                    // 检查Cookie是否设置成功
+                    setTimeout(() => {
+                        const sessionCookie = getCookie('session');
+                        console.log('登录后Cookie:', sessionCookie);
+                        if (sessionCookie) {
+                            console.log('Cookie设置成功');
+                        } else {
+                            console.warn('Cookie设置失败');
+                        }
+                    }, 100);
+                    
                     isLoggedIn.value = true;
                     username.value = loginForm.username;
                     loginModal.hide();
-                    await fetchClients(); // 重新获取客户端数据，包括ID
+                    
+                    // 延迟一点时间再获取客户端数据，确保Cookie已设置
+                    setTimeout(async () => {
+                        console.log('重新加载客户端数据');
+                        await fetchClients(); // 重新获取客户端数据，包括ID
+                        console.log('客户端数据已更新');
+                    }, 300);
                 } else {
                     const data = await response.text();
                     loginError.value = data || '用户名或密码不正确';
@@ -146,10 +228,21 @@ const app = createApp({
 
         const logout = async () => {
             try {
-                await fetch('/api/logout');
+                await fetch('/api/logout', {
+                    credentials: 'include' // 确保发送Cookie
+                });
+                
+                // 手动删除前端的Cookie
+                document.cookie = 'session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                
+                // 清除localStorage中的登录状态
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                
                 isLoggedIn.value = false;
                 username.value = '';
                 await fetchClients(); // 重新获取客户端数据，不包括ID
+                console.log('成功登出，已清除Cookie');
             } catch (error) {
                 console.error('登出失败:', error);
             }
@@ -181,6 +274,7 @@ const app = createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include', // 确保发送Cookie
                     body: JSON.stringify({
                         username: settingsForm.username,
                         oldPassword: settingsForm.oldPassword,
@@ -228,6 +322,7 @@ const app = createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include', // 确保发送Cookie
                     body: JSON.stringify({
                         name: newClientForm.name
                     })
@@ -267,6 +362,7 @@ const app = createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include', // 确保发送Cookie
                     body: JSON.stringify({
                         id: clientToDelete.value.id
                     })
@@ -314,6 +410,7 @@ const app = createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include', // 确保发送Cookie
                     body: JSON.stringify({
                         orders: orders
                     })
@@ -326,7 +423,12 @@ const app = createApp({
         // 组件挂载完成后执行
         onMounted(() => {
             initModals();
-            checkLoginStatus();
+            
+            // 首次加载时给一点延迟，确保所有组件加载完成
+            setTimeout(() => {
+                checkLoginStatus();
+            }, 100);
+            
             startRealTimeUpdates();
         });
 
