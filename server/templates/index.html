@@ -48,6 +48,14 @@
 </head>
 <body>
     <div class="wrapper" id="app" v-cloak>
+        <!-- 顶部通知提示 -->
+        <div class="global-notification" :class="{ show: notification.show }">
+            <div class="notification-content" :class="notification.type">
+                <i :class="'bi ' + notification.icon"></i>
+                <span>{{ notification.message }}</span>
+            </div>
+        </div>
+        
         <header class="navbar navbar-dark px-4 py-3">
             <div class="container-fluid d-flex justify-content-between align-items-center">
                 <a class="navbar-brand d-flex align-items-center" href="#">
@@ -115,10 +123,21 @@
                                             <i class="bi bi-three-dots"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientMenu">
-                                            <li><span class="dropdown-item client-id">ID: {{ element.id }}</span></li>
+                                            <li>
+                                                <div class="dropdown-item">
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        <i class="bi bi-key-fill me-2 text-secondary"></i>
+                                                        <span>客户端标识</span>
+                                                    </div>
+                                                    <div class="client-id-container">
+                                                        <div class="client-id" @click="copyToClipboard(element.id, $event)">{{ element.id }}</div>
+                                                        <div class="copy-tooltip">已复制!</div>
+                                                    </div>
+                                                </div>
+                                            </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-danger" href="#" @click="confirmDeleteClient(element)">
-                                                <i class="bi bi-trash3-fill me-2"></i>删除
+                                                <i class="bi bi-trash3-fill"></i>删除
                                             </a></li>
                                         </ul>
                                     </div>

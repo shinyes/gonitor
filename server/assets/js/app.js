@@ -42,6 +42,14 @@ const app = createApp({
         const isSortingClients = ref(false);
         // 主题相关状态
         const currentTheme = ref(localStorage.getItem('theme') || 'auto');
+        // 通知提示
+        const notification = reactive({
+            show: false,
+            message: '',
+            type: 'success',
+            icon: 'bi-check-circle-fill',
+            timer: null
+        });
 
         // 模态框实例
         let loginModal, settingsModal, addClientModal, deleteClientModal, clientIdModal, sortClientsModal;
@@ -566,12 +574,67 @@ const app = createApp({
             }
         };
 
-        // 复制客户端ID到剪贴板
+        // 显示全局通知
+        const showNotification = (message, type = 'success', duration = 3000) => {
+            // 清除之前的定时器
+            if (notification.timer) {
+                clearTimeout(notification.timer);
+            }
+            
+            // 设置图标
+            let icon = 'bi-check-circle-fill';
+            if (type === 'error') icon = 'bi-exclamation-circle-fill';
+            else if (type === 'warning') icon = 'bi-exclamation-triangle-fill';
+            else if (type === 'info') icon = 'bi-info-circle-fill';
+            
+            // 更新通知状态
+            notification.message = message;
+            notification.type = type;
+            notification.icon = icon;
+            notification.show = true;
+            
+            // 设置自动隐藏
+            notification.timer = setTimeout(() => {
+                notification.show = false;
+            }, duration);
+        };
+        
+        // 复制客户端ID到剪贴板 (更新)
         const copyClientId = () => {
-            const input = document.querySelector('#clientIdModal input');
-            input.select();
-            document.execCommand('copy');
-            alert('ID已复制到剪贴板');
+            if (newClientId.value) {
+                navigator.clipboard.writeText(newClientId.value)
+                    .then(() => {
+                        showNotification('客户端ID已复制到剪贴板', 'success');
+                    })
+                    .catch(err => {
+                        console.error('复制失败:', err);
+                        showNotification('复制失败，请手动复制', 'error');
+                    });
+            }
+        };
+
+        // 通用复制到剪贴板函数，支持动画反馈 (更新)
+        const copyToClipboard = (text, event) => {
+            if (!text) return;
+            
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    // 显示复制成功提示
+                    const tooltip = event.target.parentNode.querySelector('.copy-tooltip');
+                    if (tooltip) {
+                        tooltip.classList.add('show');
+                        setTimeout(() => {
+                            tooltip.classList.remove('show');
+                        }, 1500);
+                    }
+                    
+                    // 显示全局通知
+                    showNotification('客户端ID已复制到剪贴板', 'success');
+                })
+                .catch(err => {
+                    console.error('复制失败:', err);
+                    showNotification('复制失败，请手动复制', 'error');
+                });
         };
 
         // 处理拖拽排序变更
@@ -762,6 +825,7 @@ const app = createApp({
             clientsForSort,
             isSortingClients,
             currentTheme,
+            notification,
             dragOptions,
             getProgressBarClass,
             showLoginModal,
@@ -774,12 +838,14 @@ const app = createApp({
             confirmDeleteClient,
             deleteClient,
             copyClientId,
-            onDragChange,
+            getProgressBarClass,
             showSortClientsModal,
             saveClientOrder,
             moveItemUp,
             moveItemDown,
-            setTheme
+            onDragChange,
+            setTheme,
+            copyToClipboard
         };
     }
 });
