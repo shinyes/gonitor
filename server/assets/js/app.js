@@ -1,5 +1,13 @@
 const { createApp, ref, reactive, onMounted, computed } = Vue;
 
+// 添加获取Cookie的辅助函数
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+
 // 获取当前URL中的端口号，用于示例命令
 function getServerPort() {
     const port = window.location.port || '44123'; // 默认端口
@@ -19,7 +27,7 @@ const app = createApp({
         const loginForm = reactive({ username: '', password: '' });
         const loginError = ref('');
         const isLoggingIn = ref(false);
-        const settingsForm = reactive({ username: '', oldPassword: '', newPassword: '' });
+        const settingsForm = reactive({ username: '', oldPassword: '', newPassword: '', confirmPassword: '' });
         const settingsError = ref('');
         const settingsSuccess = ref('');
         const isSavingSettings = ref(false);
@@ -259,43 +267,107 @@ const app = createApp({
         };
 
         const saveSettings = async () => {
-            if (!settingsForm.username || !settingsForm.oldPassword || !settingsForm.newPassword) {
+            // 表单验证
+            if (!settingsForm.username || !settingsForm.oldPassword || !settingsForm.newPassword || !settingsForm.confirmPassword) {
                 settingsError.value = '请填写所有必填字段';
                 return;
             }
 
+            if (settingsForm.newPassword !== settingsForm.confirmPassword) {
+                settingsError.value = '新密码和确认密码不匹配';
+                return;
+            }
+
+            // 设置加载状态
             isSavingSettings.value = true;
             settingsError.value = '';
             settingsSuccess.value = '';
+            
+            // 准备请求数据
+            const requestData = {
+                username: settingsForm.username,
+                oldPassword: settingsForm.oldPassword,
+                newPassword: settingsForm.newPassword
+            };
+            
+            console.log('发送修改密码请求:', JSON.stringify(requestData));
 
             try {
+                // 发送请求
                 const response = await fetch('/api/change-password', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     credentials: 'include', // 确保发送Cookie
-                    body: JSON.stringify({
-                        username: settingsForm.username,
-                        oldPassword: settingsForm.oldPassword,
-                        newPassword: settingsForm.newPassword
-                    })
+                    body: JSON.stringify(requestData)
                 });
 
+                // 记录响应状态
+                const responseStatus = response.status;
+                const responseStatusText = response.statusText;
+                console.log(`修改密码响应状态: ${responseStatus} ${responseStatusText}`);
+                
+                // 尝试读取响应文本
+                let responseText = '';
+                try {
+                    responseText = await response.text();
+                    console.log('修改密码响应内容:', responseText);
+                } catch (e) {
+                    console.error('解析响应文本失败:', e);
+                }
+                
+                // 处理响应
                 if (response.ok) {
-                    settingsSuccess.value = '设置已保存';
+                    let jsonResponse = null;
+                    
+                    // 尝试解析JSON
+                    try {
+                        if (responseText) {
+                            jsonResponse = JSON.parse(responseText);
+                            console.log('解析的JSON响应:', jsonResponse);
+                        }
+                    } catch (e) {
+                        console.error('响应JSON解析失败:', e);
+                    }
+                    
+                    // 设置成功消息
+                    settingsSuccess.value = (jsonResponse && jsonResponse.message) ? jsonResponse.message : '设置已保存';
+                    
+                    // 更新用户名
                     username.value = settingsForm.username;
+                    
+                    // 更新localStorage中的用户名
+                    if (localStorage.getItem('isLoggedIn') === 'true') {
+                        localStorage.setItem('username', settingsForm.username);
+                    }
+                    
+                    // 重置表单
+                    settingsForm.oldPassword = '';
+                    settingsForm.newPassword = '';
+                    settingsForm.confirmPassword = '';
+                    
+                    // 延迟关闭模态框
                     setTimeout(() => {
+                        settingsSuccess.value = '';
                         settingsModal.hide();
                     }, 1500);
                 } else {
-                    const data = await response.text();
-                    settingsError.value = data || '保存设置失败';
+                    // 处理错误响应
+                    try {
+                        const errorJson = JSON.parse(responseText);
+                        settingsError.value = errorJson.error || '保存设置失败';
+                    } catch (e) {
+                        // 如果响应不是JSON格式，直接使用文本
+                        settingsError.value = responseText || `保存设置失败，状态码: ${responseStatus}`;
+                    }
                 }
             } catch (error) {
+                // 网络或其他错误
                 console.error('保存设置失败:', error);
                 settingsError.value = '网络错误，请稍后重试';
             } finally {
+                // 无论成功或失败都重置加载状态
                 isSavingSettings.value = false;
             }
         };

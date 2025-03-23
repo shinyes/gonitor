@@ -315,6 +315,7 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 // handleChangePassword 处理修改密码请求
 func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
+		log.Printf("修改密码失败: 方法不允许: %s", r.Method)
 		http.Error(w, "方法不允许", http.StatusMethodNotAllowed)
 		return
 	}
@@ -322,10 +323,12 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	// 检查是否已登录
 	_, err := r.Cookie("session")
 	if err != nil {
+		log.Printf("修改密码失败: 未授权访问")
 		http.Error(w, "未授权", http.StatusUnauthorized)
 		return
 	}
 
+	// 解析请求
 	var credentials struct {
 		Username    string `json:"username"`
 		OldPassword string `json:"oldPassword"`
@@ -333,24 +336,71 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("修改密码失败: 解析请求失败: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "error",
+			"error":  "无效的请求格式",
+		})
 		return
 	}
+
+	log.Printf("收到修改密码请求: 用户名='%s'", credentials.Username)
 
 	userDB.mu.Lock()
 	defer userDB.mu.Unlock()
 
+	// 验证原密码
 	if credentials.OldPassword != userDB.user.Password {
-		http.Error(w, "原密码不正确", http.StatusUnauthorized)
+		log.Printf("修改密码失败: 原密码不正确")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "error",
+			"error":  "原密码不正确",
+		})
 		return
 	}
 
+	// 更新用户信息
 	userDB.user.Username = credentials.Username
 	userDB.user.Password = credentials.NewPassword
-	saveUser()
 
+	// 保存到文件
+	data, err := json.MarshalIndent(userDB.user, "", "  ")
+	if err != nil {
+		log.Printf("修改密码失败: 序列化用户数据失败: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "error",
+			"error":  "保存用户数据失败",
+		})
+		return
+	}
+
+	filePath := filepath.Join(dataDir, userFile)
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
+		log.Printf("修改密码失败: 写入文件失败: %v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "error",
+			"error":  "保存用户数据失败",
+		})
+		return
+	}
+
+	log.Printf("密码修改成功: 用户=%s", credentials.Username)
+
+	// 返回成功响应
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": "设置已保存",
+	})
 }
 
 // handleGetClients 获取所有客户端信息

@@ -1,12 +1,12 @@
 {
   "client_1742721409156398400": {
-    "id": "client_1742721409156398400",
+    "id": "",
     "name": "local",
-    "connected": true,
-    "lastSeen": "2025-03-23T17:27:39.8866069+08:00",
-    "cpu": 1.7578125,
-    "memory": 69,
-    "diskUsage": 66.4232771200109,
+    "connected": false,
+    "lastSeen": "2025-03-23T17:44:21.2070679+08:00",
+    "cpu": 0.39370078740157477,
+    "memory": 68,
+    "diskUsage": 66.43124586822799,
     "displayOrder": 1
   }
 }
