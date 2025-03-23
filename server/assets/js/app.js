@@ -40,6 +40,8 @@ const app = createApp({
         const serverPort = ref(getServerPort());
         const clientsForSort = ref([]);
         const isSortingClients = ref(false);
+        // 主题相关状态
+        const currentTheme = ref(localStorage.getItem('theme') || 'auto');
 
         // 模态框实例
         let loginModal, settingsModal, addClientModal, deleteClientModal, clientIdModal, sortClientsModal;
@@ -694,23 +696,49 @@ const app = createApp({
             clientsForSort.value[index + 1] = temp;
         };
 
-        // 组件挂载完成后执行
+        // 主题相关函数
+        const getSystemTheme = () => {
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+        
+        const applyTheme = (theme) => {
+            let appliedTheme = theme;
+            if (theme === 'auto') {
+                appliedTheme = getSystemTheme();
+            }
+            document.documentElement.setAttribute('data-theme', appliedTheme);
+        };
+        
+        const setTheme = (theme) => {
+            currentTheme.value = theme;
+            localStorage.setItem('theme', theme);
+            applyTheme(theme);
+        };
+
+        // 初始化应用
         onMounted(() => {
             // 初始化模态框
             initModals();
             
             // 异步加载数据并启动实时更新
             const initApp = async () => {
-                // console.log('开始初始化应用...');
                 // 先检查登录状态并获取初始数据
                 await checkLoginStatus();
                 // 确保数据加载完成后才启动实时更新
                 startRealTimeUpdates();
-                // console.log('应用初始化完成');
             };
             
             // 执行初始化
             initApp();
+            
+            // 监听系统主题变化
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    if (currentTheme.value === 'auto') {
+                        applyTheme('auto');
+                    }
+                });
+            }
         });
 
         return {
@@ -733,6 +761,7 @@ const app = createApp({
             serverPort,
             clientsForSort,
             isSortingClients,
+            currentTheme,
             dragOptions,
             getProgressBarClass,
             showLoginModal,
@@ -749,7 +778,8 @@ const app = createApp({
             showSortClientsModal,
             saveClientOrder,
             moveItemUp,
-            moveItemDown
+            moveItemDown,
+            setTheme
         };
     }
 });
