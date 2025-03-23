@@ -285,8 +285,8 @@ const app = createApp({
 
         // 根据使用率获取进度条样式
         const getProgressBarClass = (value) => {
-            if (value < 30) return 'progress-low';
-            if (value < 70) return 'progress-medium';
+            if (value < 50) return 'progress-low';
+            if (value < 80) return 'progress-medium';
             return 'progress-high';
         };
 
