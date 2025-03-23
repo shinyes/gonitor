@@ -125,7 +125,7 @@ func loadClients() {
 	filePath := filepath.Join(dataDir, clientsFile)
 	data, err := os.ReadFile(filePath)
 	if os.IsNotExist(err) {
-		log.Println("客户端文件不存在，创建新文件")
+		// log.Println("客户端文件不存在，创建新文件")
 		saveClients()
 		return
 	}
@@ -151,7 +151,7 @@ func loadClients() {
 		if client.ID == "" {
 			client.ID = id
 			needSave = true
-			log.Printf("修复客户端ID: %s", id)
+			// log.Printf("修复客户端ID: %s", id)
 		}
 		clientDB.clients[id] = client
 	}
@@ -159,11 +159,11 @@ func loadClients() {
 
 	// 如果有修复，保存更新后的数据
 	if needSave {
-		log.Println("检测到空ID字段，保存修复后的客户端数据")
+		// log.Println("检测到空ID字段，保存修复后的客户端数据")
 		saveClients()
 	}
 
-	log.Printf("已加载 %d 个客户端", len(clients))
+	// log.Printf("已加载 %d 个客户端", len(clients))
 }
 
 // saveClients 保存客户端信息到文件
@@ -190,7 +190,7 @@ func loadUser() {
 	filePath := filepath.Join(dataDir, userFile)
 	data, err := os.ReadFile(filePath)
 	if os.IsNotExist(err) {
-		log.Println("用户文件不存在，创建默认用户")
+		// log.Println("用户文件不存在，创建默认用户")
 		saveUser()
 		return
 	}
@@ -208,7 +208,7 @@ func loadUser() {
 	userDB.mu.Lock()
 	userDB.user = user
 	userDB.mu.Unlock()
-	log.Printf("已加载用户: %s", user.Username)
+	// log.Printf("已加载用户: %s", user.Username)
 }
 
 // saveUser 保存用户信息到文件
@@ -241,7 +241,7 @@ func monitorClientConnections() {
 			if client.Connected && now.Sub(client.LastSeen) > 30*time.Second {
 				client.Connected = false
 				clientDB.clients[id] = client
-				log.Printf("客户端 %s 已断开连接", id)
+				// log.Printf("客户端 %s 已断开连接", id)
 			}
 		}
 		clientDB.mu.Unlock()
@@ -276,7 +276,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	userDB.mu.RUnlock()
 
 	if credentials.Username != user.Username || credentials.Password != user.Password {
-		log.Printf("登录失败: 用户名或密码错误 (尝试: %s)", credentials.Username)
+		// log.Printf("登录失败: 用户名或密码错误 (尝试: %s)", credentials.Username)
 		http.Error(w, "用户名或密码不正确", http.StatusUnauthorized)
 		return
 	}
@@ -293,7 +293,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 
-	log.Printf("用户 %s 登录成功，设置会话: %s，过期时间：%d秒", credentials.Username, session, cookie.MaxAge)
+	// log.Printf("用户 %s 登录成功，设置会话: %s，过期时间：%d秒", credentials.Username, session, cookie.MaxAge)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
@@ -315,7 +315,7 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 // handleChangePassword 处理修改密码请求
 func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		log.Printf("修改密码失败: 方法不允许: %s", r.Method)
+		// log.Printf("修改密码失败: 方法不允许: %s", r.Method)
 		http.Error(w, "方法不允许", http.StatusMethodNotAllowed)
 		return
 	}
@@ -323,7 +323,7 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	// 检查是否已登录
 	_, err := r.Cookie("session")
 	if err != nil {
-		log.Printf("修改密码失败: 未授权访问")
+		// log.Printf("修改密码失败: 未授权访问")
 		http.Error(w, "未授权", http.StatusUnauthorized)
 		return
 	}
@@ -336,7 +336,7 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
-		log.Printf("修改密码失败: 解析请求失败: %v", err)
+		// log.Printf("修改密码失败: 解析请求失败: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
@@ -346,14 +346,14 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("收到修改密码请求: 用户名='%s'", credentials.Username)
+	// log.Printf("收到修改密码请求: 用户名='%s'", credentials.Username)
 
 	userDB.mu.Lock()
 	defer userDB.mu.Unlock()
 
 	// 验证原密码
 	if credentials.OldPassword != userDB.user.Password {
-		log.Printf("修改密码失败: 原密码不正确")
+		// log.Printf("修改密码失败: 原密码不正确")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{
@@ -370,7 +370,7 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 	// 保存到文件
 	data, err := json.MarshalIndent(userDB.user, "", "  ")
 	if err != nil {
-		log.Printf("修改密码失败: 序列化用户数据失败: %v", err)
+		// log.Printf("修改密码失败: 序列化用户数据失败: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{
@@ -382,7 +382,7 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	filePath := filepath.Join(dataDir, userFile)
 	if err := os.WriteFile(filePath, data, 0644); err != nil {
-		log.Printf("修改密码失败: 写入文件失败: %v", err)
+		// log.Printf("修改密码失败: 写入文件失败: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{
@@ -392,7 +392,7 @@ func handleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("密码修改成功: 用户=%s", credentials.Username)
+	// log.Printf("密码修改成功: 用户=%s", credentials.Username)
 
 	// 返回成功响应
 	w.Header().Set("Content-Type", "application/json")
@@ -420,16 +420,16 @@ func handleGetClients(w http.ResponseWriter, r *http.Request) {
 	// 只有当Cookie存在、不为空时才认为用户已登录
 	isLoggedIn = (err == nil && cookie != nil && cookie.Value != "")
 
-	log.Printf("GetClients请求 - 最终登录状态: %v", isLoggedIn)
+	// log.Printf("GetClients请求 - 最终登录状态: %v", isLoggedIn)
 
 	// 如果未登录，不返回客户端ID
 	if !isLoggedIn {
 		for _, client := range clientList {
 			client.ID = ""
 		}
-		log.Println("用户未登录，隐藏所有客户端ID")
+		// log.Println("用户未登录，隐藏所有客户端ID")
 	} else {
-		log.Println("用户已登录，显示所有客户端ID")
+		// log.Println("用户已登录，显示所有客户端ID")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -603,14 +603,14 @@ func handleClientConnection(w http.ResponseWriter, r *http.Request) {
 	// 确保ID字段正确
 	if client.ID == "" {
 		client.ID = clientID
-		log.Printf("修复客户端ID: %s", clientID)
+		// log.Printf("修复客户端ID: %s", clientID)
 	}
 	client.Connected = true
 	client.LastSeen = time.Now()
 	clientDB.clients[clientID] = client
 	clientDB.mu.Unlock()
 
-	log.Printf("客户端 %s 已连接", clientID)
+	// log.Printf("客户端 %s 已连接", clientID)
 
 	// 启动一个goroutine处理WebSocket消息
 	go handleClientMessages(conn, clientID)
@@ -627,7 +627,7 @@ func handleClientMessages(conn *websocket.Conn, clientID string) {
 			clientDB.clients[clientID] = client
 		}
 		clientDB.mu.Unlock()
-		log.Printf("客户端 %s 连接已关闭", clientID)
+		// log.Printf("客户端 %s 连接已关闭", clientID)
 	}()
 
 	for {
@@ -638,7 +638,7 @@ func handleClientMessages(conn *websocket.Conn, clientID string) {
 		}
 
 		if err := conn.ReadJSON(&metrics); err != nil {
-			log.Printf("从客户端 %s 读取数据失败: %v", clientID, err)
+			// log.Printf("从客户端 %s 读取数据失败: %v", clientID, err)
 			break
 		}
 

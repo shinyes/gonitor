@@ -3,20 +3,10 @@
     "id": "client_1742721409156398400",
     "name": "local",
     "connected": false,
-    "lastSeen": "2025-03-23T19:23:34.0674887+08:00",
-    "cpu": 9.622641509433963,
-    "memory": 48,
-    "diskUsage": 65.42093234771781,
-    "displayOrder": 2
-  },
-  "client_1742728947063114200": {
-    "id": "client_1742728947063114200",
-    "name": "test",
-    "connected": false,
-    "lastSeen": "0001-01-01T00:00:00Z",
-    "cpu": 0,
-    "memory": 0,
-    "diskUsage": 0,
+    "lastSeen": "2025-03-23T21:12:51.9868317+08:00",
+    "cpu": 7.283464566929133,
+    "memory": 51,
+    "diskUsage": 65.35986024744109,
     "displayOrder": 1
   }
 }

@@ -73,25 +73,25 @@ const app = createApp({
                 const storedUsername = localStorage.getItem('username');
                 
                 if (storedLoginStatus === 'true' && storedUsername) {
-                    console.log('从localStorage恢复登录状态');
+                    // console.log('从localStorage恢复登录状态');
                     isLoggedIn.value = true;
                     username.value = storedUsername;
                 } else {
                     // 如果localStorage中没有，则检查Cookie
                     const sessionCookie = getCookie('session');
-                    console.log('会话Cookie:', sessionCookie);
+                    // console.log('会话Cookie:', sessionCookie);
                     
                     if (sessionCookie) {
                         isLoggedIn.value = true;
                         username.value = 'admin'; // 默认管理员用户名
-                        console.log('通过Cookie检测到用户已登录');
+                        // console.log('通过Cookie检测到用户已登录');
                         
                         // 同步到localStorage
                         localStorage.setItem('isLoggedIn', 'true');
                         localStorage.setItem('username', 'admin');
                     } else {
                         isLoggedIn.value = false;
-                        console.log('未检测到登录状态');
+                        // console.log('未检测到登录状态');
                     }
                 }
                 
@@ -101,7 +101,7 @@ const app = createApp({
                 });
                 
                 let data = await response.json();
-                console.log('获取到客户端数据:', data);
+                // console.log('获取到客户端数据:', data);
                 
                 // 立即按displayOrder排序，避免闪烁
                 const hasDisplayOrder = data.some(client => client.displayOrder !== undefined);
@@ -111,12 +111,12 @@ const app = createApp({
                         if (b.displayOrder === undefined) return -1;
                         return a.displayOrder - b.displayOrder;
                     });
-                    console.log('初始加载时按displayOrder排序');
+                    // console.log('初始加载时按displayOrder排序');
                 }
                 
                 // 如果已登录但数据中没有ID，可能是服务器端会话已过期
                 if (isLoggedIn.value && data.length > 0 && !data.some(client => client.id)) {
-                    console.log('服务器端会话可能已过期，需要重新登录');
+                    // console.log('服务器端会话可能已过期，需要重新登录');
                     
                     // 尝试自动重新登录一次
                     const reloginResponse = await fetch('/api/login', {
@@ -137,9 +137,9 @@ const app = createApp({
                         username.value = '';
                         localStorage.removeItem('isLoggedIn');
                         localStorage.removeItem('username');
-                        console.log('重新登录失败，已清除登录状态');
+                        // console.log('重新登录失败，已清除登录状态');
                     } else {
-                        console.log('自动重新登录成功');
+                        // console.log('自动重新登录成功');
                         // 重新获取客户端数据
                         await fetchClients();
                     }
@@ -148,7 +148,7 @@ const app = createApp({
                 // 更新客户端列表
                 clients.value = data;
             } catch (error) {
-                console.error('获取客户端信息失败:', error);
+                // console.error('获取客户端信息失败:', error);
             }
         };
 
@@ -170,7 +170,7 @@ const app = createApp({
                         if (b.displayOrder === undefined) return -1;
                         return a.displayOrder - b.displayOrder;
                     });
-                    console.log('使用服务器返回的displayOrder排序');
+                    // console.log('使用服务器返回的displayOrder排序');
                 } 
                 // 如果无法从服务器获取排序信息，则保持本地排序
                 else if (clients.value.length > 0) {
@@ -192,13 +192,13 @@ const app = createApp({
                         }
                         return 0;
                     });
-                    console.log('使用本地排序顺序');
+                    // console.log('使用本地排序顺序');
                 }
                 
                 // 更新客户端列表
                 clients.value = data;
             } catch (error) {
-                console.error('获取客户端信息失败:', error);
+                // console.error('获取客户端信息失败:', error);
             }
         };
 
@@ -212,7 +212,7 @@ const app = createApp({
                 // 确保初始数据已经排序好后再开始更新
                 if (!initialDataLoaded && clients.value.length > 0) {
                     initialDataLoaded = true;
-                    console.log('初始数据已加载，开始实时更新');
+                    // console.log('初始数据已加载，开始实时更新');
                 }
                 
                 if (!initialDataLoaded) {
@@ -262,7 +262,7 @@ const app = createApp({
                     // 更新客户端数据
                     clients.value = newData;
                 } catch (error) {
-                    console.error('更新客户端数据失败:', error);
+                    // console.error('更新客户端数据失败:', error);
                 }
             }, 1000);
         };
@@ -305,7 +305,7 @@ const app = createApp({
                 });
 
                 if (response.ok) {
-                    console.log('登录成功');
+                    // console.log('登录成功');
                     
                     // 同时在localStorage中保存登录状态
                     localStorage.setItem('isLoggedIn', 'true');
@@ -314,11 +314,11 @@ const app = createApp({
                     // 检查Cookie是否设置成功
                     setTimeout(() => {
                         const sessionCookie = getCookie('session');
-                        console.log('登录后Cookie:', sessionCookie);
+                        // console.log('登录后Cookie:', sessionCookie);
                         if (sessionCookie) {
-                            console.log('Cookie设置成功');
+                            // console.log('Cookie设置成功');
                         } else {
-                            console.warn('Cookie设置失败');
+                            // console.warn('Cookie设置失败');
                         }
                     }, 100);
                     
@@ -328,16 +328,16 @@ const app = createApp({
                     
                     // 延迟一点时间再获取客户端数据，确保Cookie已设置
                     setTimeout(async () => {
-                        console.log('重新加载客户端数据');
+                        // console.log('重新加载客户端数据');
                         await fetchClients(); // 重新获取客户端数据，包括ID
-                        console.log('客户端数据已更新');
+                        // console.log('客户端数据已更新');
                     }, 300);
                 } else {
                     const data = await response.text();
                     loginError.value = data || '用户名或密码不正确';
                 }
             } catch (error) {
-                console.error('登录失败:', error);
+                // console.error('登录失败:', error);
                 loginError.value = '网络错误，请稍后重试';
             } finally {
                 isLoggingIn.value = false;
@@ -360,9 +360,9 @@ const app = createApp({
                 isLoggedIn.value = false;
                 username.value = '';
                 await fetchClients(); // 重新获取客户端数据，不包括ID
-                console.log('成功登出，已清除Cookie');
+                // console.log('成功登出，已清除Cookie');
             } catch (error) {
-                console.error('登出失败:', error);
+                // console.error('登出失败:', error);
             }
         };
 
@@ -400,7 +400,7 @@ const app = createApp({
                 newPassword: settingsForm.newPassword
             };
             
-            console.log('发送修改密码请求:', JSON.stringify(requestData));
+            // console.log('发送修改密码请求:', JSON.stringify(requestData));
 
             try {
                 // 发送请求
@@ -416,15 +416,15 @@ const app = createApp({
                 // 记录响应状态
                 const responseStatus = response.status;
                 const responseStatusText = response.statusText;
-                console.log(`修改密码响应状态: ${responseStatus} ${responseStatusText}`);
+                // console.log(`修改密码响应状态: ${responseStatus} ${responseStatusText}`);
                 
                 // 尝试读取响应文本
                 let responseText = '';
                 try {
                     responseText = await response.text();
-                    console.log('修改密码响应内容:', responseText);
+                    // console.log('修改密码响应内容:', responseText);
                 } catch (e) {
-                    console.error('解析响应文本失败:', e);
+                    // console.error('解析响应文本失败:', e);
                 }
                 
                 // 处理响应
@@ -435,10 +435,10 @@ const app = createApp({
                     try {
                         if (responseText) {
                             jsonResponse = JSON.parse(responseText);
-                            console.log('解析的JSON响应:', jsonResponse);
+                            // console.log('解析的JSON响应:', jsonResponse);
                         }
                     } catch (e) {
-                        console.error('响应JSON解析失败:', e);
+                        // console.error('响应JSON解析失败:', e);
                     }
                     
                     // 设置成功消息
@@ -474,7 +474,7 @@ const app = createApp({
                 }
             } catch (error) {
                 // 网络或其他错误
-                console.error('保存设置失败:', error);
+                // console.error('保存设置失败:', error);
                 settingsError.value = '网络错误，请稍后重试';
             } finally {
                 // 无论成功或失败都重置加载状态
@@ -521,7 +521,7 @@ const app = createApp({
                     addClientError.value = data || '添加客户端失败';
                 }
             } catch (error) {
-                console.error('添加客户端失败:', error);
+                // console.error('添加客户端失败:', error);
                 addClientError.value = '网络错误，请稍后重试';
             } finally {
                 isAddingClient.value = false;
@@ -554,10 +554,10 @@ const app = createApp({
                     deleteClientModal.hide();
                     await fetchClients();
                 } else {
-                    console.error('删除客户端失败:', await response.text());
+                    // console.error('删除客户端失败:', await response.text());
                 }
             } catch (error) {
-                console.error('删除客户端失败:', error);
+                // console.error('删除客户端失败:', error);
             } finally {
                 isDeletingClient.value = false;
                 clientToDelete.value = null;
@@ -604,9 +604,9 @@ const app = createApp({
                         orders: orders
                     })
                 });
-                console.log('拖拽排序已保存到服务器');
+                // console.log('拖拽排序已保存到服务器');
             } catch (error) {
-                console.error('更新排序失败:', error);
+                // console.error('更新排序失败:', error);
             }
         };
 
@@ -669,10 +669,10 @@ const app = createApp({
                     // 3. 更新客户端数组
                     clients.value = newClientsArray;
                     sortClientsModal.hide();
-                    console.log('排序已保存并应用，重新加载页面或重新登录后仍会保持此排序');
+                    // console.log('排序已保存并应用，重新加载页面或重新登录后仍会保持此排序');
                 }
             } catch (error) {
-                console.error('保存排序失败:', error);
+                // console.error('保存排序失败:', error);
             } finally {
                 isSortingClients.value = false;
             }
@@ -701,12 +701,12 @@ const app = createApp({
             
             // 异步加载数据并启动实时更新
             const initApp = async () => {
-                console.log('开始初始化应用...');
+                // console.log('开始初始化应用...');
                 // 先检查登录状态并获取初始数据
                 await checkLoginStatus();
                 // 确保数据加载完成后才启动实时更新
                 startRealTimeUpdates();
-                console.log('应用初始化完成');
+                // console.log('应用初始化完成');
             };
             
             // 执行初始化
