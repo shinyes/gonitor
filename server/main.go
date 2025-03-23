@@ -143,11 +143,27 @@ func loadClients() {
 
 	clientDB.mu.Lock()
 	clientDB.clients = clients
+
+	// 修复客户端ID字段
+	var needSave bool
 	for id, client := range clientDB.clients {
 		client.Connected = false
+		// 如果ID字段为空，则用map的key填充
+		if client.ID == "" {
+			client.ID = id
+			needSave = true
+			log.Printf("修复客户端ID: %s", id)
+		}
 		clientDB.clients[id] = client
 	}
 	clientDB.mu.Unlock()
+
+	// 如果有修复，保存更新后的数据
+	if needSave {
+		log.Println("检测到空ID字段，保存修复后的客户端数据")
+		saveClients()
+	}
+
 	log.Printf("已加载 %d 个客户端", len(clients))
 }
 
@@ -414,8 +430,9 @@ func handleAddClient(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	clientDB.clients[id] = &Client{
-		ID:           id,
+	// 确保ID字段正确设置
+	newClient := &Client{
+		ID:           id, // 这里确保ID字段设置正确
 		Name:         clientInfo.Name,
 		Connected:    false,
 		LastSeen:     time.Time{},
@@ -424,6 +441,7 @@ func handleAddClient(w http.ResponseWriter, r *http.Request) {
 		DiskUsage:    0,
 		DisplayOrder: maxOrder + 1,
 	}
+	clientDB.clients[id] = newClient
 	clientDB.mu.Unlock()
 
 	saveClients()
@@ -542,6 +560,11 @@ func handleClientConnection(w http.ResponseWriter, r *http.Request) {
 	}
 	clientDB.conns[clientID] = conn
 	client := clientDB.clients[clientID]
+	// 确保ID字段正确
+	if client.ID == "" {
+		client.ID = clientID
+		log.Printf("修复客户端ID: %s", clientID)
+	}
 	client.Connected = true
 	client.LastSeen = time.Now()
 	client.IP = remoteAddr
@@ -582,6 +605,10 @@ func handleClientMessages(conn *websocket.Conn, clientID string) {
 
 		clientDB.mu.Lock()
 		if client, ok := clientDB.clients[clientID]; ok {
+			// 确保ID字段正确
+			if client.ID == "" {
+				client.ID = clientID
+			}
 			client.CPU = metrics.CPU
 			client.Memory = metrics.Memory
 			client.DiskUsage = metrics.DiskUsage
