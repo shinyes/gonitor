@@ -191,13 +191,20 @@
                     </draggable>
                 </div>
                 
-                <div class="empty-state" v-else>
+                <div class="empty-state" v-else-if="clientsLoaded">
                     <div class="empty-state-icon">
                         <i class="bi bi-server"></i>
                     </div>
                     <h3 class="empty-state-title">暂无客户端数据</h3>
                     <p class="empty-state-text" v-if="isLoggedIn">点击"添加客户端"按钮开始监控</p>
                     <p class="empty-state-text" v-else>请登录后添加客户端</p>
+                </div>
+                
+                <!-- 加载中提示 -->
+                <div class="loading-state" v-else>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
                 </div>
             </div>
         </main>

@@ -24,6 +24,7 @@ const app = createApp({
         const isLoggedIn = ref(false);
         const username = ref('');
         const clients = ref([]);
+        const clientsLoaded = ref(false); // 新增：标记客户端数据是否已加载
         const loginForm = reactive({ username: '', password: '' });
         const loginError = ref('');
         const isLoggingIn = ref(false);
@@ -130,6 +131,10 @@ const app = createApp({
                     // console.log('初始加载时按displayOrder排序');
                 }
                 
+                // 更新客户端列表
+                clients.value = data;
+                clientsLoaded.value = true; // 标记客户端数据已加载
+                
                 // 如果已登录但数据中没有ID，可能是服务器端会话已过期
                 if (isLoggedIn.value && data.length > 0 && !data.some(client => client.id)) {
                     // console.log('服务器端会话可能已过期，需要重新登录');
@@ -160,9 +165,6 @@ const app = createApp({
                         await fetchClients();
                     }
                 }
-                
-                // 更新客户端列表
-                clients.value = data;
             } catch (error) {
                 // console.error('获取客户端信息失败:', error);
             }
@@ -277,6 +279,9 @@ const app = createApp({
                     
                     // 更新客户端数据
                     clients.value = newData;
+                    if (!clientsLoaded.value) {
+                        clientsLoaded.value = true;
+                    }
                 } catch (error) {
                     // console.error('更新客户端数据失败:', error);
                 }
@@ -375,7 +380,10 @@ const app = createApp({
                 
                 isLoggedIn.value = false;
                 username.value = '';
-                await fetchClients(); // 重新获取客户端数据，不包括ID
+                clientsLoaded.value = false; // 重置客户端加载状态
+                
+                // 重新获取客户端数据（不含敏感信息）
+                await fetchClients();
                 // console.log('成功登出，已清除Cookie');
             } catch (error) {
                 // console.error('登出失败:', error);
@@ -875,6 +883,7 @@ const app = createApp({
             isLoggedIn,
             username,
             clients,
+            clientsLoaded,
             loginForm,
             loginError,
             isLoggingIn,
