@@ -105,9 +105,9 @@ func collectMetrics() (Metrics, error) {
 	}
 	metrics.Memory = memInfo.UsedPercent
 
-	// 获取所有磁盘的平均使用率
-	var totalUsage float64
-	var diskCount int
+	// 获取所有磁盘的总容量和总已用空间
+	var totalSpace uint64
+	var usedSpace uint64
 
 	partitions, err := disk.Partitions(false)
 	if err != nil {
@@ -115,7 +115,7 @@ func collectMetrics() (Metrics, error) {
 	}
 
 	for _, partition := range partitions {
-		// 跟据操作系统，跳过一些特殊的挂载点
+		// 根据操作系统，跳过一些特殊的挂载点
 		if runtime.GOOS == "windows" && partition.Fstype == "NTFS" ||
 			runtime.GOOS != "windows" && (partition.Fstype == "ext4" || partition.Fstype == "xfs") {
 			usage, err := disk.Usage(partition.Mountpoint)
@@ -123,13 +123,14 @@ func collectMetrics() (Metrics, error) {
 				log.Printf("获取磁盘 %s 使用情况失败: %v", partition.Mountpoint, err)
 				continue
 			}
-			totalUsage += usage.UsedPercent
-			diskCount++
+			totalSpace += usage.Total
+			usedSpace += usage.Used
 		}
 	}
 
-	if diskCount > 0 {
-		metrics.DiskUsage = totalUsage / float64(diskCount)
+	if totalSpace > 0 {
+		// 计算总体使用率
+		metrics.DiskUsage = float64(usedSpace) * 100.0 / float64(totalSpace)
 	}
 
 	return metrics, nil
