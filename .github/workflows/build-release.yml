@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write # Ensure the permission is granted to operate the release
+      id-token: write # 确保发布操作的权限被授予
 
     steps:
     - name: Checkout code
@@ -19,7 +19,7 @@ jobs:
       run: |
         VERSION=$(cat VERSION)
         echo "Version: $VERSION"
-        echo "::set-output name=version::$VERSION"  # Modify the output method
+        echo "version=$VERSION" >> $GITHUB_OUTPUT  # 修正输出方法
         
     - name: Create Git Tag
       run: |
@@ -43,27 +43,19 @@ jobs:
         GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-client-linux-arm64 .
         GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-client-windows-amd64.exe .
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
+    - name: Create Release and Upload Assets
+      uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.read_version.outputs.version }}
-        release_name: Release ${{ steps.read_version.outputs.version }}
+        name: Release ${{ steps.read_version.outputs.version }}
         draft: false
         prerelease: false
-
-    - name: Upload Release Assets for Server
-      uses: softprops/action-gh-release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: "bin/gonitor-server-linux-amd64 bin/gonitor-server-linux-arm64 bin/gonitor-server-windows-amd64.exe"
-
-    - name: Upload Release Assets for Client
-      uses: softprops/action-gh-release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: "bin/gonitor-client-linux-amd64 bin/gonitor-client-linux-arm64 bin/gonitor-client-windows-amd64.exe"
+        files: |
+          bin/gonitor-server-linux-amd64
+          bin/gonitor-server-linux-arm64
+          bin/gonitor-server-windows-amd64.exe
+          bin/gonitor-client-linux-amd64
+          bin/gonitor-client-linux-arm64
+          bin/gonitor-client-windows-amd64.exe
