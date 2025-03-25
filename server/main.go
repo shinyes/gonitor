@@ -245,6 +245,14 @@ func monitorClientConnections() {
 			// 如果客户端超过30秒没有更新，标记为断开
 			if client.Connected && now.Sub(client.LastSeen) > 30*time.Second {
 				client.Connected = false
+				// 将断开连接的客户端指标数据归零
+				client.CPU = 0
+				client.Memory = 0
+				client.DiskUsage = 0
+				client.DiskReadSpeed = 0
+				client.DiskWriteSpeed = 0
+				client.UploadSpeed = 0
+				client.DownloadSpeed = 0
 				clientDB.clients[id] = client
 				// log.Printf("客户端 %s 已断开连接", id)
 			}
@@ -699,6 +707,14 @@ func handleClientMessages(conn *websocket.Conn, clientID string) {
 		delete(clientDB.conns, clientID)
 		if client, ok := clientDB.clients[clientID]; ok {
 			client.Connected = false
+			// 将断开连接的客户端指标数据归零
+			client.CPU = 0
+			client.Memory = 0
+			client.DiskUsage = 0
+			client.DiskReadSpeed = 0
+			client.DiskWriteSpeed = 0
+			client.UploadSpeed = 0
+			client.DownloadSpeed = 0
 			clientDB.clients[clientID] = client
 		}
 		clientDB.mu.Unlock()
