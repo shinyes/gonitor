@@ -1,0 +1,70 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Read version from VERSION file
+      id: read_version
+      run: |
+        VERSION=$(cat VERSION)
+        echo "Version: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Debug version
+      run: echo "Version: ${{ steps.read_version.outputs.version }}"
+
+    - name: Create Git Tag
+      run: |
+        git tag ${{ steps.read_version.outputs.version }}
+        git push origin ${{ steps.read_version.outputs.version }}
+
+    - name: Prepare build directory
+      run: mkdir -p bin
+
+    - name: Build server binaries
+      run: |
+        cd server
+        GOOS=linux GOARCH=amd64 go build -o ../bin/gonitor-server-linux-amd64 .
+        GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-server-linux-arm64 .
+        GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-server-windows-amd64.exe .
+    
+    - name: Build client binaries
+      run: |
+        cd client
+        GOOS=linux GOARCH=amd64 go build -o ../bin/gonitor-client-linux-amd64 .
+        GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-client-linux-arm64 .
+        GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-client-windows-amd64.exe .
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.read_version.outputs.version }}
+        release_name: Release ${{ steps.read_version.outputs.version }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          bin/gonitor-server-linux-amd64
+          bin/gonitor-server-linux-arm64
+          bin/gonitor-server-windows-amd64.exe
+          bin/gonitor-client-linux-amd64
+          bin/gonitor-client-linux-arm64
+          bin/gonitor-client-windows-amd64.exe
