@@ -454,6 +454,19 @@ body {
     color: var(--dark);
 }
 
+/* 深色模式下命令示例的样式调整 */
+[data-theme="dark"] .command-header {
+    background-color: #334155;
+}
+
+[data-theme="dark"] .command-content {
+    background-color: #1e293b;
+}
+
+[data-theme="dark"] .command-content code {
+    color: #f1f5f9;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .server-grid {
