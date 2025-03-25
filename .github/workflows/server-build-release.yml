@@ -1,0 +1,86 @@
+name: Release Build
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.1'  # 根据需要调整 Go 版本
+
+    - name: Get version
+      id: version
+      run: |
+        # 获取当前版本号
+        VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+        # 增加版本号
+        NEW_VERSION=$(echo $VERSION | awk -F. '{printf "v%d.%d.%d", $1, $2, $3+1}')
+        echo "New version: $NEW_VERSION"
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Move to Go project directory
+      run: |
+        cd server  # 替换为你的 Go 项目目录
+        echo "Current directory: $(pwd)"
+
+    - name: Build for amd64 Linux
+      run: |
+        GOOS=linux GOARCH=amd64 go build -o ../bin/gonitor-server-linux-amd64 .
+
+    - name: Build for arm64 Linux
+      run: |
+        GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-server-linux-arm64 .
+
+    - name: Build for amd64 Windows
+      run: |
+        GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-server-windows-amd64.exe .
+
+    - name: Move back to root directory
+      run: |
+        cd ../  # 返回到根目录
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        release_name: Release ${{ steps.version.outputs.version }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: bin/gonitor-server-linux-amd64
+        asset_name: gonitor-server-linux-amd64
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: bin/gonitor-server-linux-arm64
+        asset_name: gonitor-server-linux-arm64
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: bin/gonitor-server-windows-amd64.exe
+        asset_name: gonitor-server-windows-amd64.exe
