@@ -34,8 +34,8 @@
 1. 下载并安装服务端：
 
 ```bash
-git clone https://github.com/yourusername/go-monitor.git
-cd go-monitor/server
+git clone https://github.com/shinyes/gonitor.git
+cd gonitor/server
 go build
 ```
 
@@ -50,7 +50,7 @@ go build
 1. 下载并编译客户端：
 
 ```bash
-cd go-monitor/client
+cd gonitor/client
 go build
 ```
 
