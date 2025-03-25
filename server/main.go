@@ -465,7 +465,12 @@ func handleAddClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 生成唯一ID
-	id := fmt.Sprintf("client_%d", time.Now().UnixNano())
+	timestamp := time.Now().UnixNano()
+	// 使用时间戳后8位加上两个随机字母，总长度为10位
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	c1 := chars[timestamp%26]
+	c2 := chars[(timestamp/26)%26]
+	id := fmt.Sprintf("%c%c%08d", c1, c2, timestamp%100000000)
 
 	clientDB.mu.Lock()
 	// 确定最大的显示顺序

@@ -129,12 +129,10 @@
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientMenu">
                                             <li>
                                                 <div class="dropdown-item">
-                                                    <div class="d-flex align-items-center mb-1">
+                                                    <div class="d-flex align-items-center">
                                                         <i class="bi bi-key-fill me-2 text-secondary"></i>
-                                                        <span>客户端标识</span>
-                                                    </div>
-                                                    <div class="client-id-container">
-                                                        <div class="client-id" @click="copyToClipboard(element.id, $event)">{{ element.id }}</div>
+                                                        <span>客户端标识：</span>
+                                                        <span class="client-id ms-1" @click="copyToClipboard(element.id, $event)">{{ element.id }}</span>
                                                         <div class="copy-tooltip">已复制!</div>
                                                     </div>
                                                 </div>

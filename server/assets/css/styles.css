@@ -716,6 +716,17 @@ body {
     font-weight: 500;
 }
 
+[data-theme="dark"] .sort-name {
+    font-weight: 600;
+    color: #fff;
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
 .dragging {
     opacity: 0.8;
     background-color: var(--primary);
@@ -847,11 +858,7 @@ body {
 .dropdown-menu li .dropdown-item.text-danger {
     display: flex;
     align-items: center;
-    justify-content: center;
     padding: 0.35rem 0.5rem;
-    border-radius: 4px;
-    margin: 0 0.4rem 0.4rem;
-    width: calc(100% - 0.8rem);
     background-color: rgba(239, 68, 68, 0.1);
     transition: background-color 0.2s;
     font-size: 0.85rem;
@@ -958,4 +965,18 @@ body {
 
 .metric-header .d-flex.flex-column div span {
     white-space: nowrap;
+}
+
+/* 内联客户端ID样式 */
+.dropdown-item .d-flex .client-id {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.75rem;
+    color: var(--primary);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+    position: relative;
+    font-weight: 500;
 } 
