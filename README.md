@@ -1,94 +1,105 @@
-# Go-Monitor 系统监控工具
+# Go Monitor
 
-一个基于Go语言开发的轻量级系统监控工具，由服务端和客户端组成，可以实时监控多台机器的CPU、内存和磁盘使用情况。
+一个现代化的服务器监控系统，使用Go语言开发，提供直观的Web界面来监控多个服务器的系统资源。
 
 ## 功能特点
 
-- 服务端-客户端架构，支持多客户端同时连接
-- 实时监控客户端的CPU、内存和磁盘使用率
-- 基于WebSocket的实时数据传输
-- 简洁的Web界面展示监控数据
-- 客户端断开自动重连机制
-- 支持客户端管理（添加、删除、排序）
-- 用户认证系统，保护监控数据安全
+- 💻 实时监控系统资源
+  - CPU 使用率
+  - 内存使用情况
+  - 硬盘使用状态
+  - 网络传输速度
 
-## 系统要求
+- 🎨 美观的用户界面
+  - 响应式设计，支持各种设备
+  - 深色/浅色主题切换
+  - 实时数据更新
+  - 流畅的动画效果
 
-- Go 1.16+
-- 支持Windows、Linux和macOS平台
+- 🛠 便捷的管理功能
+  - 服务器拖拽排序
+  - 客户端ID一键复制
+  - 客户端重命名
+  - 服务器状态实时显示
 
-## 安装方法
+- 🔒 安全可靠
+  - 安全的客户端认证机制
+  - 稳定的WebSocket连接
+  - 自动重连机制
 
-1. 克隆仓库：
+## 快速开始
+
+### 服务端
+
+1. 下载并安装服务端：
 
 ```bash
 git clone https://github.com/yourusername/go-monitor.git
-cd go-monitor
-```
-
-2. 编译服务端：
-
-```bash
-cd server
+cd go-monitor/server
 go build
 ```
 
-3. 编译客户端：
+2. 运行服务端：
 
 ```bash
-cd ../client
+./server -port=44123
+```
+
+### 客户端
+
+1. 下载并编译客户端：
+
+```bash
+cd go-monitor/client
 go build
 ```
 
-## 使用方法
-
-### 启动服务端
+2. 运行客户端：
 
 ```bash
-# 默认端口44123
-./server
-
-# 指定端口
-./server -port=8080
+./client -server=localhost:44123 -id=YOUR_CLIENT_ID
 ```
 
-服务端启动后，可通过浏览器访问 `http://localhost:44123` 进入监控界面。
+## 配置说明
 
-### 启动客户端
+### 服务端配置
 
-```bash
-# 连接到本地服务端
-./client -id=client001
+- `-port`: 服务器监听端口（默认：44123）
+- `-host`: 服务器监听地址（默认：0.0.0.0）
 
-# 连接到远程服务端
-./client -id=client001 -server=remote-server:44123
+### 客户端配置
+
+- `-server`: 服务器地址和端口
+- `-id`: 客户端唯一标识
+- `-interval`: 数据上报间隔（默认：1秒）
+
+## 系统要求
+
+- Go 1.16 或更高版本
+- 支持现代浏览器（Chrome、Firefox、Safari、Edge）
+- 系统：Windows、Linux、macOS
+
+## 开发说明
+
+### 目录结构
+
+```
+gonitor/
+├── server/         # 服务端代码
+│   ├── assets/     # 静态资源
+│   └── templates/  # HTML模板
+├── client/         # 客户端代码
+└── common/         # 公共代码
 ```
 
-每个客户端需要一个唯一的ID，可以通过服务端Web界面添加客户端。
+### 技术栈
 
-## 项目结构
-
-```
-go-monitor/
-├── server/          # 服务端代码
-│   ├── main.go      # 服务端主程序
-│   ├── go.mod       # 依赖管理
-│   ├── templates/   # Web模板
-│   ├── assets/      # Web静态资源
-│   └── data/        # 数据存储目录
-├── client/          # 客户端代码
-│   ├── main.go      # 客户端主程序
-│   └── go.mod       # 依赖管理
-└── assets/          # 项目资源文件
-```
-
-## 默认登录信息
-
-- 用户名：admin
-- 密码：admin
-
-首次登录后，建议立即修改默认密码。
+- 后端：Go
+- 前端：HTML5、CSS3、JavaScript
+- UI框架：Bootstrap 5
+- 图标：Bootstrap Icons
+- WebSocket：用于实时数据传输
 
 ## 许可证
 
-MIT 
+本项目采用 MIT 许可证，详见 [LICENSE](LICENSE) 文件。 
