@@ -13,25 +13,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24.1'
-
-    - name: Get version
-      id: version
+    - name: Read version from VERSION file
+      id: read_version
       run: |
-        VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0")
-        MAJOR=$(echo $VERSION | sed -E 's/v([0-9]+).*/\1/')
-        MINOR=$(echo $VERSION | sed -E 's/v[0-9]+.([0-9]+)/\1/')
-        NEW_VERSION="v$MAJOR.$((MINOR + 1))"
-        echo "New version: $NEW_VERSION"
-        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        VERSION=$(cat VERSION)
+        echo "Version: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Create Git Tag
       run: |
-        git tag ${{ steps.version.outputs.version }}
-        git push origin ${{ steps.version.outputs.version }}
+        git tag ${{ steps.read_version.outputs.version }}
+        git push origin ${{ steps.read_version.outputs.version }}
 
     - name: Prepare build directory
       run: mkdir -p bin
@@ -56,8 +48,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.version.outputs.version }}
-        release_name: Release ${{ steps.version.outputs.version }}
+        tag_name: ${{ steps.read_version.outputs.version }}
+        release_name: Release ${{ steps.read_version.outputs.version }}
         draft: false
         prerelease: false
 
