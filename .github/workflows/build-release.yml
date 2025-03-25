@@ -46,9 +46,9 @@ jobs:
     - name: Package server binaries
       run: |
         cd bin
-        tar -czvf gonitor-server-linux-amd64.tar gonitor-server-linux-amd64 ../server/assets ../server/templates
-        tar -czvf gonitor-server-linux-arm64.tar gonitor-server-linux-arm64 ../server/assets ../server/templates
-        tar -czvf gonitor-server-windows-amd64.tar gonitor-server-windows-amd64.exe ../server/assets ../server/templates
+        tar -czvf gonitor-server-linux-amd64.tar gonitor-server-linux-amd64 -C ../server assets templates
+        tar -czvf gonitor-server-linux-arm64.tar gonitor-server-linux-arm64 -C ../server assets templates
+        tar -czvf gonitor-server-windows-amd64.tar gonitor-server-windows-amd64.exe -C ../server assets templates
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
