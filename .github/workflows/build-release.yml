@@ -20,6 +20,9 @@ jobs:
         echo "Version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+    - name: Debug version
+      run: echo "Version: ${{ steps.read_version.outputs.version }}"
+
     - name: Create Git Tag
       run: |
         git tag ${{ steps.read_version.outputs.version }}
