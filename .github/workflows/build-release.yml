@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write # 确保权限可以适当操作发布
 
     steps:
     - name: Checkout code
@@ -18,7 +19,7 @@ jobs:
       run: |
         VERSION=$(cat VERSION)
         echo "Version: $VERSION"
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "::set-output name=version::$VERSION"  # 修改输出方式
 
     - name: Debug version
       run: echo "Version: ${{ steps.read_version.outputs.version }}"
@@ -37,7 +38,7 @@ jobs:
         GOOS=linux GOARCH=amd64 go build -o ../bin/gonitor-server-linux-amd64 .
         GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-server-linux-arm64 .
         GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-server-windows-amd64.exe .
-    
+
     - name: Build client binaries
       run: |
         cd client
