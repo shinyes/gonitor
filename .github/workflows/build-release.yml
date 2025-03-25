@@ -56,15 +56,16 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Upload Release Assets
+    - name: Upload Release Assets for Server
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        files: |
-          bin/gonitor-server-linux-amd64
-          bin/gonitor-server-linux-arm64
-          bin/gonitor-server-windows-amd64.exe
-          bin/gonitor-client-linux-amd64
-          bin/gonitor-client-linux-arm64
-          bin/gonitor-client-windows-amd64.exe
+        files: "bin/gonitor-server-linux-amd64 bin/gonitor-server-linux-arm64 bin/gonitor-server-windows-amd64.exe"
+
+    - name: Upload Release Assets for Client
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: "bin/gonitor-client-linux-amd64 bin/gonitor-client-linux-arm64 bin/gonitor-client-windows-amd64.exe"
