@@ -48,6 +48,42 @@
                 });
             }
         })();
+        
+        function copyClientIdWithEffect(button) {
+            const clientId = document.querySelector('#clientIdModal code').textContent;
+            navigator.clipboard.writeText(clientId).then(() => {
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check2"></i><span>已复制</span>';
+                button.style.color = 'var(--success)';
+                button.style.borderColor = 'var(--success)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                    button.style.color = '';
+                    button.style.borderColor = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+        
+        function copyCommand(button) {
+            const command = button.parentElement.querySelector('code').textContent;
+            navigator.clipboard.writeText(command).then(() => {
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check2"></i><span>已复制</span>';
+                button.style.color = 'var(--success)';
+                button.style.borderColor = 'var(--success)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                    button.style.color = '';
+                    button.style.borderColor = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
     </script>
 </head>
 <body>
@@ -133,7 +169,6 @@
                                                         <i class="bi bi-key-fill me-2 text-secondary"></i>
                                                         <span>客户端标识：</span>
                                                         <span class="client-id ms-1" @click="copyToClipboard(element.id, $event)">{{ element.id }}</span>
-                                                        <div class="copy-tooltip">已复制!</div>
                                                     </div>
                                                 </div>
                                             </li>
@@ -383,19 +418,34 @@
                     </div>
                     <div class="modal-body">
                         <p>新客户端已添加。请使用以下ID配置客户端：</p>
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" :value="newClientId" readonly>
-                            <button class="btn btn-outline-primary" type="button" @click="copyClientId">
-                                <i class="bi bi-clipboard me-1"></i>复制
-                            </button>
+                        <div class="command-example">
+                            <div class="command-header">
+                                <div>
+                                    <i class="bi bi-key-fill me-1"></i>
+                                    <span>客户端ID</span>
+                                </div>
+                            </div>
+                            <div class="command-content">
+                                <code>{{ newClientId }}</code>
+                                <button class="command-copy-btn" onclick="copyClientIdWithEffect(this)">
+                                    <i class="bi bi-clipboard"></i>
+                                    <span>复制</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="command-example">
                             <div class="command-header">
-                                <i class="bi bi-terminal me-1"></i>
-                                <span>命令示例</span>
+                                <div>
+                                    <i class="bi bi-terminal me-1"></i>
+                                    <span>命令示例</span>
+                                </div>
                             </div>
                             <div class="command-content">
                                 <code>./client -server=localhost:{{ serverPort }} -id={{ newClientId }}</code>
+                                <button class="command-copy-btn" onclick="copyCommand(this)">
+                                    <i class="bi bi-clipboard"></i>
+                                    <span>复制</span>
+                                </button>
                             </div>
                         </div>
                     </div>

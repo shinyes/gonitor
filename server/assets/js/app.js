@@ -654,28 +654,20 @@ const app = createApp({
             }
         };
 
-        // 通用复制到剪贴板函数，支持动画反馈 (更新)
+        // 复制到剪贴板
         const copyToClipboard = (text, event) => {
-            if (!text) return;
-            
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    // 显示复制成功提示
-                    const tooltip = event.target.parentNode.querySelector('.copy-tooltip');
-                    if (tooltip) {
-                        tooltip.classList.add('show');
-                        setTimeout(() => {
-                            tooltip.classList.remove('show');
-                        }, 1500);
-                    }
-                    
-                    // 显示全局通知
-                    showNotification('客户端ID已复制到剪贴板', 'success');
-                })
-                .catch(err => {
-                    console.error('复制失败:', err);
-                    showNotification('复制失败，请手动复制', 'error');
-                });
+            navigator.clipboard.writeText(text).then(() => {
+                const target = event.target;
+                target.classList.add('copied');
+                setTimeout(() => {
+                    target.classList.remove('copied');
+                }, 2000);
+                // 显示成功通知
+                showNotification('复制成功', 'success');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                showNotification('复制失败，请手动复制', 'error');
+            });
         };
 
         // 处理拖拽排序变更
