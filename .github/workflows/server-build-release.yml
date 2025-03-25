@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 赋予写入 Release 的权限
 
     steps:
     - name: Checkout code
