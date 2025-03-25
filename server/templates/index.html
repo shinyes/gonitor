@@ -200,12 +200,14 @@
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
-                                                    <span class="metric-name">磁盘读取</span>
-                                                    <span class="metric-value">{{ formatNetworkSpeed(element.diskReadSpeed) }}</span>
-                                                </div>
-                                                <div class="progress">
-                                                    <div class="progress-bar progress-info"
-                                                        :style="{width: getNetworkSpeedPercent(element.diskReadSpeed) + '%'}">
+                                                    <span class="metric-name">硬盘</span>
+                                                    <div class="d-flex flex-column">
+                                                        <div>
+                                                            <span>↑ {{ formatNetworkSpeed(element.diskReadSpeed) }}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span>↓ {{ formatNetworkSpeed(element.diskWriteSpeed) }}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -214,40 +216,14 @@
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
-                                                    <span class="metric-name">磁盘写入</span>
-                                                    <span class="metric-value">{{ formatNetworkSpeed(element.diskWriteSpeed) }}</span>
-                                                </div>
-                                                <div class="progress">
-                                                    <div class="progress-bar progress-info"
-                                                        :style="{width: getNetworkSpeedPercent(element.diskWriteSpeed) + '%'}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="metric-col">
-                                            <div class="metric">
-                                                <div class="metric-header">
-                                                    <span class="metric-name">上传速度</span>
-                                                    <span class="metric-value">{{ formatNetworkSpeed(element.uploadSpeed) }}</span>
-                                                </div>
-                                                <div class="progress">
-                                                    <div class="progress-bar progress-info"
-                                                        :style="{width: getNetworkSpeedPercent(element.uploadSpeed) + '%'}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="metric-col">
-                                            <div class="metric">
-                                                <div class="metric-header">
-                                                    <span class="metric-name">下载速度</span>
-                                                    <span class="metric-value">{{ formatNetworkSpeed(element.downloadSpeed) }}</span>
-                                                </div>
-                                                <div class="progress">
-                                                    <div class="progress-bar progress-info"
-                                                        :style="{width: getNetworkSpeedPercent(element.downloadSpeed) + '%'}">
+                                                    <span class="metric-name">网速</span>
+                                                    <div class="d-flex flex-column">
+                                                        <div>
+                                                            <span>↑ {{ formatNetworkSpeed(element.uploadSpeed) }}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span>↓ {{ formatNetworkSpeed(element.downloadSpeed) }}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -907,4 +907,19 @@ body {
 .metric-col {
     flex: 0 0 50%;
     padding: 0 0.3rem;
+}
+
+/* 硬盘和网速指标的样式 */
+.metric-header .d-flex.flex-column {
+    text-align: right;
+}
+
+.metric-header .d-flex.flex-column div {
+    font-weight: 600;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+.metric-header .d-flex.flex-column div span {
+    white-space: nowrap;
 } 
