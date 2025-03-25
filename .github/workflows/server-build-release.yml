@@ -1,13 +1,13 @@
 name: Release Build
 
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 赋予写入 Release 的权限
+      contents: write
 
     steps:
     - name: Checkout code
@@ -16,23 +16,25 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.24.1'  # 根据需要调整 Go 版本
+        go-version: '1.24.1'
 
     - name: Get version
       id: version
       run: |
-        # 获取最新的 tag，如果不存在则默认 v0.0
         VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0")
-        # 提取主版本和次版本（假设格式为 vX.Y）
         MAJOR=$(echo $VERSION | sed -E 's/v([0-9]+).*/\1/')
         MINOR=$(echo $VERSION | sed -E 's/v[0-9]+.([0-9]+)/\1/')
-        # 递增次版本号
         NEW_VERSION="v$MAJOR.$((MINOR + 1))"
         echo "New version: $NEW_VERSION"
-        echo "version=$NEW_VERSION" >> $GITHUB_ENV
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create Git Tag
+      run: |
+        git tag ${{ steps.version.outputs.version }}
+        git push origin ${{ steps.version.outputs.version }}
 
     - name: Prepare build directory
-      run: mkdir -p bin  # 确保 bin 目录存在
+      run: mkdir -p bin
 
     - name: Build server binaries
       run: |
@@ -48,18 +50,14 @@ jobs:
         GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-client-linux-arm64 .
         GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-client-windows-amd64.exe .
 
-    - name: Move back to root directory
-      run: |
-        cd ../  # 返回到根目录
-
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ env.version }}
-        release_name: Release ${{ env.version }}
+        tag_name: ${{ steps.version.outputs.version }}
+        release_name: Release ${{ steps.version.outputs.version }}
         draft: false
         prerelease: false
 
