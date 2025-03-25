@@ -150,9 +150,9 @@
                                         </ul>
                                     </div>
                                 </div>
-                                <div class="server-card-body" :class="{'compact-metrics': isVerySmallScreen}">
+                                <div class="server-card-body">
                                     <div class="metric-row">
-                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                        <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">CPU</span>
@@ -167,7 +167,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                        <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">内存</span>
@@ -182,7 +182,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                        <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">存储</span>
@@ -197,7 +197,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                        <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">磁盘读取</span>
@@ -211,7 +211,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                        <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">磁盘写入</span>
@@ -225,7 +225,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                        <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">上传速度</span>
@@ -239,7 +239,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                        <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">下载速度</span>

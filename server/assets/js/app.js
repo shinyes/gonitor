@@ -59,14 +59,10 @@ const app = createApp({
         
         // 响应式布局状态
         const isMobileView = ref(window.innerWidth <= 768);
-        const isVerySmallScreen = ref(window.innerWidth <= 480);
-        const windowWidth = ref(window.innerWidth);
 
         // 监听窗口大小变化
         const handleResize = () => {
-            windowWidth.value = window.innerWidth;
             isMobileView.value = window.innerWidth <= 768;
-            isVerySmallScreen.value = window.innerWidth <= 480;
         };
 
         // 模态框实例
@@ -965,9 +961,7 @@ const app = createApp({
             formatNetworkSpeed,
             getNetworkSpeedPercent,
             // 导出响应式布局状态
-            isMobileView,
-            isVerySmallScreen,
-            windowWidth
+            isMobileView
         };
     }
 });
