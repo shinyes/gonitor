@@ -43,15 +43,6 @@ jobs:
         GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-client-linux-arm64 .
         GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-client-windows-amd64.exe .
 
-    - name: Package server binaries
-      run: |
-        mkdir -p package
-        cp -r server/assets server/templates package/
-
-        tar -cf bin/gonitor-server-linux-amd64.tar -C package . bin/gonitor-server-linux-amd64
-        tar -cf bin/gonitor-server-linux-arm64.tar -C package . bin/gonitor-server-linux-arm64
-        tar -cf bin/gonitor-server-windows-amd64.tar -C package . bin/gonitor-server-windows-amd64.exe
-
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
       env:
@@ -62,9 +53,9 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          bin/gonitor-server-linux-amd64.tar
-          bin/gonitor-server-linux-arm64.tar
-          bin/gonitor-server-windows-amd64.tar
+          bin/gonitor-server-linux-amd64
+          bin/gonitor-server-linux-arm64
+          bin/gonitor-server-windows-amd64.exe
           bin/gonitor-client-linux-amd64
           bin/gonitor-client-linux-arm64
           bin/gonitor-client-windows-amd64.exe
