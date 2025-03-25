@@ -26,22 +26,22 @@ jobs:
         echo "New version: $NEW_VERSION"
         echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-    - name: Move to Go project directory
-      run: |
-        cd server  # 替换为你的 Go 项目目录
-        echo "Current directory: $(pwd)"
+    # - name: Move to Go project directory
+    #   run: |
+    #     cd server  # 替换为你的 Go 项目目录
+    #     echo "Current directory: $(pwd)"
 
     - name: Build for amd64 Linux
       run: |
-        GOOS=linux GOARCH=amd64 go build -o ../bin/gonitor-server-linux-amd64 .
+        GOOS=linux GOARCH=amd64 go build -C server -o ../bin/gonitor-server-linux-amd64 .
 
     - name: Build for arm64 Linux
       run: |
-        GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-server-linux-arm64 .
+        GOOS=linux GOARCH=arm64 go build -C server -o ../bin/gonitor-server-linux-arm64 .
 
     - name: Build for amd64 Windows
       run: |
-        GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-server-windows-amd64.exe .
+        GOOS=windows GOARCH=amd64 go build -C server -o ../bin/gonitor-server-windows-amd64.exe .
 
     - name: Move back to root directory
       run: |
