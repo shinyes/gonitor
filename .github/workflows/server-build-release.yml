@@ -24,7 +24,7 @@ jobs:
         # 获取当前版本号
         VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.0")
         # 增加版本号
-        NEW_VERSION=$(echo $VERSION | awk -F. '{printf "v%d.%d.%d", $1, $2, $3+1}')
+        NEW_VERSION=$(echo $VERSION | awk -F. '{printf "v%d.%d", $1, $2+1}')
         echo "New version: $NEW_VERSION"
         echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
@@ -33,17 +33,29 @@ jobs:
     #     cd server  # 替换为你的 Go 项目目录
     #     echo "Current directory: $(pwd)"
 
-    - name: Build for amd64 Linux
+    - name: Build server for amd64 Linux
       run: |
         GOOS=linux GOARCH=amd64 go build -C server -o ../bin/gonitor-server-linux-amd64 .
 
-    - name: Build for arm64 Linux
+    - name: Build server for arm64 Linux
       run: |
         GOOS=linux GOARCH=arm64 go build -C server -o ../bin/gonitor-server-linux-arm64 .
 
-    - name: Build for amd64 Windows
+    - name: Build server for amd64 Windows
       run: |
         GOOS=windows GOARCH=amd64 go build -C server -o ../bin/gonitor-server-windows-amd64.exe .
+        
+    - name: Build client for amd64 Linux
+      run: |
+        GOOS=linux GOARCH=amd64 go build -C client -o ../bin/gonitor-client-linux-amd64 .
+
+    - name: Build client for arm64 Linux
+      run: |
+        GOOS=linux GOARCH=arm64 go build -C client -o ../bin/gonitor-client-linux-arm64 .
+
+    - name: Build client for amd64 Windows
+      run: |
+        GOOS=windows GOARCH=amd64 go build -C client -o ../bin/gonitor-client-windows-amd64.exe .
 
     - name: Move back to root directory
       run: |
