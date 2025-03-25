@@ -492,7 +492,7 @@ body {
     }
 }
 
-/* 更小屏幕的额外调整 */
+/* 更小屏幕的额外调整 - 手机和小尺寸平板 */
 @media (max-width: 480px) {
     .server-grid {
         gap: 0.4rem;
@@ -516,7 +516,7 @@ body {
     }
     
     .metric {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
     }
     
     .btn-icon {
@@ -531,6 +531,79 @@ body {
     .status-badge {
         width: 6px;
         height: 6px;
+    }
+    
+    /* 在非常小的屏幕上使用紧凑布局 */
+    .metric-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -0.2rem;
+    }
+    
+    .metric-col {
+        flex: 0 0 50%;
+        padding: 0 0.2rem;
+    }
+    
+    /* 手机端显示更紧凑的指标 */
+    .compact-metrics .metric {
+        margin-bottom: 0.3rem;
+    }
+    
+    .compact-metrics .metric-header {
+        margin-bottom: 0.1rem;
+    }
+    
+    .compact-metrics .progress {
+        height: 4px;
+    }
+    
+    /* 在极小屏幕上调整字体大小 */
+    .compact-metrics .metric-name,
+    .compact-metrics .metric-value {
+        font-size: 0.75rem;
+    }
+}
+
+/* 针对极小屏幕的额外优化 */
+@media (max-width: 360px) {
+    .server-grid {
+        gap: 0.25rem;
+    }
+    
+    .server-card {
+        margin-bottom: 0.25rem;
+    }
+    
+    .server-card-header {
+        padding: 0.4rem;
+    }
+    
+    .server-card-body {
+        padding: 0.4rem;
+    }
+    
+    .metric {
+        margin-bottom: 0.25rem;
+    }
+    
+    .server-name {
+        font-size: 0.9rem;
+    }
+    
+    .metric-name, .metric-value {
+        font-size: 0.7rem;
+    }
+    
+    /* 调整状态指示器大小 */
+    .status-badge {
+        width: 5px;
+        height: 5px;
+    }
+    
+    /* 极小屏幕上的单一列布局 */
+    .metric-col {
+        flex: 0 0 100%;
     }
 }
 

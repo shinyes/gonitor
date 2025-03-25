@@ -3,7 +3,11 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Gonitor - 轻量级系统监控工具">
+    <meta name="theme-color" content="#4361ee">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Gonitor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -146,66 +150,106 @@
                                         </ul>
                                     </div>
                                 </div>
-                                <div class="server-card-body">
-                                    <div class="metric">
-                                        <div class="metric-header">
-                                            <span class="metric-name">CPU</span>
-                                            <span class="metric-value">{{ element.cpu.toFixed(1) }}%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar"
-                                                :class="getProgressBarClass(element.cpu)"
-                                                :style="{width: element.cpu + '%'}">
+                                <div class="server-card-body" :class="{'compact-metrics': isVerySmallScreen}">
+                                    <div class="metric-row">
+                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name">CPU</span>
+                                                    <span class="metric-value">{{ element.cpu.toFixed(1) }}%</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar"
+                                                        :class="getProgressBarClass(element.cpu)"
+                                                        :style="{width: element.cpu + '%'}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="metric">
-                                        <div class="metric-header">
-                                            <span class="metric-name">内存</span>
-                                            <span class="metric-value">{{ element.memory.toFixed(1) }}%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar"
-                                                :class="getProgressBarClass(element.memory)"
-                                                :style="{width: element.memory + '%'}">
+                                        
+                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name">内存</span>
+                                                    <span class="metric-value">{{ element.memory.toFixed(1) }}%</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar"
+                                                        :class="getProgressBarClass(element.memory)"
+                                                        :style="{width: element.memory + '%'}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="metric">
-                                        <div class="metric-header">
-                                            <span class="metric-name">存储</span>
-                                            <span class="metric-value">{{ element.diskUsage.toFixed(1) }}%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar"
-                                                :class="getProgressBarClass(element.diskUsage)"
-                                                :style="{width: element.diskUsage + '%'}">
+                                        
+                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name">存储</span>
+                                                    <span class="metric-value">{{ element.diskUsage.toFixed(1) }}%</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar"
+                                                        :class="getProgressBarClass(element.diskUsage)"
+                                                        :style="{width: element.diskUsage + '%'}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="metric">
-                                        <div class="metric-header">
-                                            <span class="metric-name">上传速度</span>
-                                            <span class="metric-value">{{ formatNetworkSpeed(element.uploadSpeed) }}</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar progress-info"
-                                                :style="{width: getNetworkSpeedPercent(element.uploadSpeed) + '%'}">
+                                        
+                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name">磁盘读取</span>
+                                                    <span class="metric-value">{{ formatNetworkSpeed(element.diskReadSpeed) }}</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar progress-info"
+                                                        :style="{width: getNetworkSpeedPercent(element.diskReadSpeed) + '%'}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="metric">
-                                        <div class="metric-header">
-                                            <span class="metric-name">下载速度</span>
-                                            <span class="metric-value">{{ formatNetworkSpeed(element.downloadSpeed) }}</span>
+                                        
+                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name">磁盘写入</span>
+                                                    <span class="metric-value">{{ formatNetworkSpeed(element.diskWriteSpeed) }}</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar progress-info"
+                                                        :style="{width: getNetworkSpeedPercent(element.diskWriteSpeed) + '%'}">
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="progress">
-                                            <div class="progress-bar progress-info"
-                                                :style="{width: getNetworkSpeedPercent(element.downloadSpeed) + '%'}">
+                                        
+                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name">上传速度</span>
+                                                    <span class="metric-value">{{ formatNetworkSpeed(element.uploadSpeed) }}</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar progress-info"
+                                                        :style="{width: getNetworkSpeedPercent(element.uploadSpeed) + '%'}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div :class="{'col-12': windowWidth <= 360 || windowWidth > 480, 'col-6': windowWidth > 360 && windowWidth <= 480, 'metric-col': true}">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name">下载速度</span>
+                                                    <span class="metric-value">{{ formatNetworkSpeed(element.downloadSpeed) }}</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar progress-info"
+                                                        :style="{width: getNetworkSpeedPercent(element.downloadSpeed) + '%'}">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

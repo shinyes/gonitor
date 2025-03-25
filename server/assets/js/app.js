@@ -56,6 +56,18 @@ const app = createApp({
         const renameForm = reactive({ name: '' });
         const renameError = ref('');
         const isRenaming = ref(false);
+        
+        // 响应式布局状态
+        const isMobileView = ref(window.innerWidth <= 768);
+        const isVerySmallScreen = ref(window.innerWidth <= 480);
+        const windowWidth = ref(window.innerWidth);
+
+        // 监听窗口大小变化
+        const handleResize = () => {
+            windowWidth.value = window.innerWidth;
+            isMobileView.value = window.innerWidth <= 768;
+            isVerySmallScreen.value = window.innerWidth <= 480;
+        };
 
         // 模态框实例
         let loginModal, settingsModal, addClientModal, deleteClientModal, clientIdModal, sortClientsModal, renameClientModal;
@@ -888,9 +900,12 @@ const app = createApp({
             // 执行初始化
             initApp();
             
+            // 添加窗口大小变化监听
+            window.addEventListener('resize', handleResize);
+            
             // 监听系统主题变化
             if (window.matchMedia) {
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
                     if (currentTheme.value === 'auto') {
                         applyTheme('auto');
                     }
@@ -948,7 +963,11 @@ const app = createApp({
             showRenameClientModal,
             renameClient,
             formatNetworkSpeed,
-            getNetworkSpeedPercent
+            getNetworkSpeedPercent,
+            // 导出响应式布局状态
+            isMobileView,
+            isVerySmallScreen,
+            windowWidth
         };
     }
 });

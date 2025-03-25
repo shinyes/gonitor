@@ -27,15 +27,22 @@ var (
 	downloadSpeedHistory []float64
 	// 网速历史数据窗口大小
 	speedHistorySize = 3
+	// 磁盘IO数据
+	lastDiskIOStats  map[string]disk.IOCountersStat
+	lastDiskIOTime   time.Time
+	diskReadHistory  []float64
+	diskWriteHistory []float64
 )
 
 // 系统指标结构
 type Metrics struct {
-	CPU           float64 `json:"cpu"`
-	Memory        float64 `json:"memory"`
-	DiskUsage     float64 `json:"diskUsage"`
-	UploadSpeed   float64 `json:"uploadSpeed"`   // 上传网速 (KB/s)
-	DownloadSpeed float64 `json:"downloadSpeed"` // 下载网速 (KB/s)
+	CPU            float64 `json:"cpu"`
+	Memory         float64 `json:"memory"`
+	DiskUsage      float64 `json:"diskUsage"`
+	DiskReadSpeed  float64 `json:"diskReadSpeed"`  // 磁盘读取速度 (KB/s)
+	DiskWriteSpeed float64 `json:"diskWriteSpeed"` // 磁盘写入速度 (KB/s)
+	UploadSpeed    float64 `json:"uploadSpeed"`    // 上传网速 (KB/s)
+	DownloadSpeed  float64 `json:"downloadSpeed"`  // 下载网速 (KB/s)
 }
 
 func main() {
@@ -47,9 +54,14 @@ func main() {
 
 	// 初始化网络统计数据
 	initNetStats()
+	// 初始化磁盘IO统计数据
+	initDiskIOStats()
 	// 初始化网速历史数据
 	uploadSpeedHistory = make([]float64, 0, speedHistorySize)
 	downloadSpeedHistory = make([]float64, 0, speedHistorySize)
+	// 初始化磁盘IO历史数据
+	diskReadHistory = make([]float64, 0, speedHistorySize)
+	diskWriteHistory = make([]float64, 0, speedHistorySize)
 
 	log.Printf("客户端启动，连接到服务器：%s，客户端ID：%s", *serverAddr, *clientID)
 
@@ -84,6 +96,8 @@ func main() {
 
 	// 启动单独的goroutine来收集网速数据，更频繁地采样
 	go collectNetworkSpeedData()
+	// 启动单独的goroutine来收集磁盘IO数据
+	go collectDiskIOData()
 
 	// 定时发送系统指标
 	ticker := time.NewTicker(500 * time.Millisecond) // 改为500毫秒发送一次，更新更频繁
@@ -122,6 +136,25 @@ func initNetStats() {
 	lastNetTime = time.Now()
 
 	log.Println("网络统计数据初始化完成")
+}
+
+// 初始化磁盘IO统计数据
+func initDiskIOStats() {
+	// 获取所有磁盘的IO统计信息
+	stats, err := disk.IOCounters()
+	if err != nil {
+		log.Printf("初始化磁盘IO统计数据失败: %v", err)
+		return
+	}
+
+	// 转换为map以便查找
+	lastDiskIOStats = make(map[string]disk.IOCountersStat)
+	for name, stat := range stats {
+		lastDiskIOStats[name] = stat
+	}
+	lastDiskIOTime = time.Now()
+
+	log.Println("磁盘IO统计数据初始化完成")
 }
 
 // 单独收集网络速度数据，采样更频繁
@@ -198,6 +231,78 @@ func collectNetworkSpeedData() {
 			lastNetStats[stat.Name] = stat
 		}
 		lastNetTime = now
+	}
+}
+
+// 单独收集磁盘IO数据
+func collectDiskIOData() {
+	ticker := time.NewTicker(200 * time.Millisecond) // 每200毫秒采样一次磁盘IO数据
+	defer ticker.Stop()
+
+	for range ticker.C {
+		// 获取当前磁盘IO统计数据
+		currentStats, err := disk.IOCounters()
+		if err != nil {
+			log.Printf("获取磁盘IO统计信息失败: %v", err)
+			continue
+		}
+
+		now := time.Now()
+		elapsedSec := now.Sub(lastDiskIOTime).Seconds()
+
+		if elapsedSec > 0 && len(lastDiskIOStats) > 0 {
+			var totalReadBytes uint64
+			var totalWriteBytes uint64
+			var lastReadBytes uint64
+			var lastWriteBytes uint64
+
+			// 汇总所有磁盘的IO
+			for name, stat := range currentStats {
+				totalReadBytes += stat.ReadBytes
+				totalWriteBytes += stat.WriteBytes
+
+				if lastStat, ok := lastDiskIOStats[name]; ok {
+					lastReadBytes += lastStat.ReadBytes
+					lastWriteBytes += lastStat.WriteBytes
+				}
+			}
+
+			// 计算即时速率 (KB/s)
+			var readSpeed, writeSpeed float64
+
+			// 处理计数器重置的情况
+			if totalReadBytes >= lastReadBytes {
+				readSpeed = float64(totalReadBytes-lastReadBytes) / elapsedSec / 1024
+			} else {
+				log.Printf("检测到读取计数器重置")
+				readSpeed = float64(totalReadBytes) / elapsedSec / 1024
+			}
+
+			if totalWriteBytes >= lastWriteBytes {
+				writeSpeed = float64(totalWriteBytes-lastWriteBytes) / elapsedSec / 1024
+			} else {
+				log.Printf("检测到写入计数器重置")
+				writeSpeed = float64(totalWriteBytes) / elapsedSec / 1024
+			}
+
+			// 更新历史数据队列
+			if len(diskReadHistory) >= speedHistorySize {
+				diskReadHistory = diskReadHistory[1:]
+			}
+			diskReadHistory = append(diskReadHistory, readSpeed)
+
+			if len(diskWriteHistory) >= speedHistorySize {
+				diskWriteHistory = diskWriteHistory[1:]
+			}
+			diskWriteHistory = append(diskWriteHistory, writeSpeed)
+		}
+
+		// 更新统计数据以备下次使用
+		lastDiskIOStats = make(map[string]disk.IOCountersStat)
+		for name, stat := range currentStats {
+			lastDiskIOStats[name] = stat
+		}
+		lastDiskIOTime = now
 	}
 }
 
@@ -279,6 +384,36 @@ func collectMetrics() (Metrics, error) {
 				(sum / float64(len(uploadSpeedHistory)) * 0.3)
 		} else {
 			metrics.UploadSpeed = sum / float64(len(uploadSpeedHistory))
+		}
+	}
+
+	// 计算磁盘读取速度平滑值
+	if len(diskReadHistory) > 0 {
+		var sum float64
+		for _, v := range diskReadHistory {
+			sum += v
+		}
+		// 偏向最新数据的加权平均
+		if len(diskReadHistory) >= 2 {
+			metrics.DiskReadSpeed = (diskReadHistory[len(diskReadHistory)-1] * 0.7) +
+				(sum / float64(len(diskReadHistory)) * 0.3)
+		} else {
+			metrics.DiskReadSpeed = sum / float64(len(diskReadHistory))
+		}
+	}
+
+	// 计算磁盘写入速度平滑值
+	if len(diskWriteHistory) > 0 {
+		var sum float64
+		for _, v := range diskWriteHistory {
+			sum += v
+		}
+		// 偏向最新数据的加权平均
+		if len(diskWriteHistory) >= 2 {
+			metrics.DiskWriteSpeed = (diskWriteHistory[len(diskWriteHistory)-1] * 0.7) +
+				(sum / float64(len(diskWriteHistory)) * 0.3)
+		} else {
+			metrics.DiskWriteSpeed = sum / float64(len(diskWriteHistory))
 		}
 	}
 

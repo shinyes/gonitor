@@ -29,16 +29,18 @@ type User struct {
 
 // Client 表示客户端信息
 type Client struct {
-	ID            string    `json:"id"`
-	Name          string    `json:"name"`
-	Connected     bool      `json:"connected"`
-	LastSeen      time.Time `json:"lastSeen"`
-	CPU           float64   `json:"cpu"`
-	Memory        float64   `json:"memory"`
-	DiskUsage     float64   `json:"diskUsage"`
-	UploadSpeed   float64   `json:"uploadSpeed"`   // 上传网速 (KB/s)
-	DownloadSpeed float64   `json:"downloadSpeed"` // 下载网速 (KB/s)
-	DisplayOrder  int       `json:"displayOrder"`
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	Connected      bool      `json:"connected"`
+	LastSeen       time.Time `json:"lastSeen"`
+	CPU            float64   `json:"cpu"`
+	Memory         float64   `json:"memory"`
+	DiskUsage      float64   `json:"diskUsage"`
+	DiskReadSpeed  float64   `json:"diskReadSpeed"`  // 磁盘读取速度 (KB/s)
+	DiskWriteSpeed float64   `json:"diskWriteSpeed"` // 磁盘写入速度 (KB/s)
+	UploadSpeed    float64   `json:"uploadSpeed"`    // 上传网速 (KB/s)
+	DownloadSpeed  float64   `json:"downloadSpeed"`  // 下载网速 (KB/s)
+	DisplayOrder   int       `json:"displayOrder"`
 }
 
 // ClientDB 管理所有已注册的客户端
@@ -476,16 +478,18 @@ func handleAddClient(w http.ResponseWriter, r *http.Request) {
 
 	// 确保ID字段正确设置
 	newClient := &Client{
-		ID:            id, // 这里确保ID字段设置正确
-		Name:          clientInfo.Name,
-		Connected:     false,
-		LastSeen:      time.Time{},
-		CPU:           0,
-		Memory:        0,
-		DiskUsage:     0,
-		UploadSpeed:   0,
-		DownloadSpeed: 0,
-		DisplayOrder:  maxOrder + 1,
+		ID:             id, // 这里确保ID字段设置正确
+		Name:           clientInfo.Name,
+		Connected:      false,
+		LastSeen:       time.Time{},
+		CPU:            0,
+		Memory:         0,
+		DiskUsage:      0,
+		DiskReadSpeed:  0,
+		DiskWriteSpeed: 0,
+		UploadSpeed:    0,
+		DownloadSpeed:  0,
+		DisplayOrder:   maxOrder + 1,
 	}
 	clientDB.clients[id] = newClient
 	clientDB.mu.Unlock()
@@ -698,11 +702,13 @@ func handleClientMessages(conn *websocket.Conn, clientID string) {
 
 	for {
 		var metrics struct {
-			CPU           float64 `json:"cpu"`
-			Memory        float64 `json:"memory"`
-			DiskUsage     float64 `json:"diskUsage"`
-			UploadSpeed   float64 `json:"uploadSpeed"`
-			DownloadSpeed float64 `json:"downloadSpeed"`
+			CPU            float64 `json:"cpu"`
+			Memory         float64 `json:"memory"`
+			DiskUsage      float64 `json:"diskUsage"`
+			DiskReadSpeed  float64 `json:"diskReadSpeed"`
+			DiskWriteSpeed float64 `json:"diskWriteSpeed"`
+			UploadSpeed    float64 `json:"uploadSpeed"`
+			DownloadSpeed  float64 `json:"downloadSpeed"`
 		}
 
 		if err := conn.ReadJSON(&metrics); err != nil {
@@ -719,6 +725,8 @@ func handleClientMessages(conn *websocket.Conn, clientID string) {
 			client.CPU = metrics.CPU
 			client.Memory = metrics.Memory
 			client.DiskUsage = metrics.DiskUsage
+			client.DiskReadSpeed = metrics.DiskReadSpeed
+			client.DiskWriteSpeed = metrics.DiskWriteSpeed
 			client.UploadSpeed = metrics.UploadSpeed
 			client.DownloadSpeed = metrics.DownloadSpeed
 			client.LastSeen = time.Now()
