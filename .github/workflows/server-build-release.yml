@@ -21,41 +21,32 @@ jobs:
     - name: Get version
       id: version
       run: |
-        # 获取当前版本号
-        VERSION=$(git describe --tags --abbrev=0 || echo "v0.0")
-        # 增加版本号
-        NEW_VERSION=$(echo $VERSION | awk -F. '{printf "v%d.%d", $1, $2+1}')
+        # 获取最新的 tag，如果不存在则默认 v0.0
+        VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0")
+        # 提取主版本和次版本（假设格式为 vX.Y）
+        MAJOR=$(echo $VERSION | sed -E 's/v([0-9]+).*/\1/')
+        MINOR=$(echo $VERSION | sed -E 's/v[0-9]+.([0-9]+)/\1/')
+        # 递增次版本号
+        NEW_VERSION="v$MAJOR.$((MINOR + 1))"
         echo "New version: $NEW_VERSION"
-        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "version=$NEW_VERSION" >> $GITHUB_ENV
 
-    # - name: Move to Go project directory
-    #   run: |
-    #     cd server  # 替换为你的 Go 项目目录
-    #     echo "Current directory: $(pwd)"
+    - name: Prepare build directory
+      run: mkdir -p bin  # 确保 bin 目录存在
 
-    - name: Build server for amd64 Linux
+    - name: Build server binaries
       run: |
-        GOOS=linux GOARCH=amd64 go build -C server -o ../bin/gonitor-server-linux-amd64 .
-
-    - name: Build server for arm64 Linux
+        cd server
+        GOOS=linux GOARCH=amd64 go build -o ../bin/gonitor-server-linux-amd64 .
+        GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-server-linux-arm64 .
+        GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-server-windows-amd64.exe .
+    
+    - name: Build client binaries
       run: |
-        GOOS=linux GOARCH=arm64 go build -C server -o ../bin/gonitor-server-linux-arm64 .
-
-    - name: Build server for amd64 Windows
-      run: |
-        GOOS=windows GOARCH=amd64 go build -C server -o ../bin/gonitor-server-windows-amd64.exe .
-        
-    - name: Build client for amd64 Linux
-      run: |
-        GOOS=linux GOARCH=amd64 go build -C client -o ../bin/gonitor-client-linux-amd64 .
-
-    - name: Build client for arm64 Linux
-      run: |
-        GOOS=linux GOARCH=arm64 go build -C client -o ../bin/gonitor-client-linux-arm64 .
-
-    - name: Build client for amd64 Windows
-      run: |
-        GOOS=windows GOARCH=amd64 go build -C client -o ../bin/gonitor-client-windows-amd64.exe .
+        cd client
+        GOOS=linux GOARCH=amd64 go build -o ../bin/gonitor-client-linux-amd64 .
+        GOOS=linux GOARCH=arm64 go build -o ../bin/gonitor-client-linux-arm64 .
+        GOOS=windows GOARCH=amd64 go build -o ../bin/gonitor-client-windows-amd64.exe .
 
     - name: Move back to root directory
       run: |
@@ -67,8 +58,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.version.outputs.version }}
-        release_name: Release ${{ steps.version.outputs.version }}
+        tag_name: ${{ env.version }}
+        release_name: Release ${{ env.version }}
         draft: false
         prerelease: false
 
@@ -77,18 +68,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        files: bin/gonitor-server-linux-amd64
-
-    - name: Upload Release Assets
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: bin/gonitor-server-linux-arm64
-
-    - name: Upload Release Assets
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: bin/gonitor-server-windows-amd64.exe
+        files: |
+          bin/gonitor-server-linux-amd64
+          bin/gonitor-server-linux-arm64
+          bin/gonitor-server-windows-amd64.exe
+          bin/gonitor-client-linux-amd64
+          bin/gonitor-client-linux-arm64
+          bin/gonitor-client-windows-amd64.exe
