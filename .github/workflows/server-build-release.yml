@@ -28,7 +28,7 @@ jobs:
 
     - name: Move to Go project directory
       run: |
-        cd server  # 替换为你的 Go 项目目录
+        cd ./server  # 替换为你的 Go 项目目录
         echo "Current directory: $(pwd)"
 
     - name: Build for amd64 Linux
