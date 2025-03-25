@@ -20,10 +20,7 @@ jobs:
         VERSION=$(cat VERSION)
         echo "Version: $VERSION"
         echo "::set-output name=version::$VERSION"  # Modify the output method
-
-    # - name: Debug version
-    #   run: echo "Version: ${{ steps.read_version.outputs.version }}"
-
+        
     - name: Create Git Tag
       run: |
         git tag ${{ steps.read_version.outputs.version }}
@@ -70,6 +67,3 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         files: "bin/gonitor-client-linux-amd64 bin/gonitor-client-linux-arm64 bin/gonitor-client-windows-amd64.exe"
-
-    - name: Debug version again
-      run: echo "Version: ${{ steps.read_version.outputs.version }}"
