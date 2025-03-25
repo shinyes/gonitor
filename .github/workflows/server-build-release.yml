@@ -22,7 +22,7 @@ jobs:
       id: version
       run: |
         # 获取当前版本号
-        VERSION=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+        VERSION=$(git describe --tags --abbrev=0 || echo "v0.0")
         # 增加版本号
         NEW_VERSION=$(echo $VERSION | awk -F. '{printf "v%d.%d", $1, $2+1}')
         echo "New version: $NEW_VERSION"
