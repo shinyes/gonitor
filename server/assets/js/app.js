@@ -295,6 +295,25 @@ const app = createApp({
             return 'progress-high';
         };
 
+        // 格式化网络速度显示
+        const formatNetworkSpeed = (speed) => {
+            if (speed >= 1024) {
+                return (speed / 1024).toFixed(2) + ' MB/s';
+            } else {
+                return speed.toFixed(2) + ' KB/s';
+            }
+        };
+        
+        // 计算网络速度进度条百分比（用于显示）
+        const getNetworkSpeedPercent = (speed) => {
+            // 最大值设为10 MB/s (10240 KB/s)，超过这个值显示100%
+            const maxSpeed = 10240;
+            if (speed >= maxSpeed) return 100;
+            
+            // 低于最大值时，按比例显示
+            return (speed / maxSpeed) * 100;
+        };
+
         // 登录相关函数
         const showLoginModal = () => {
             loginForm.username = '';
@@ -927,7 +946,9 @@ const app = createApp({
             setTheme,
             copyToClipboard,
             showRenameClientModal,
-            renameClient
+            renameClient,
+            formatNetworkSpeed,
+            getNetworkSpeedPercent
         };
     }
 });

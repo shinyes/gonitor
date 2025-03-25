@@ -13,18 +13,29 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/net"
 )
 
 var (
 	serverAddr = flag.String("server", "localhost:44123", "服务器地址")
 	clientID   = flag.String("id", "", "客户端ID")
+	// 记录上一次网络统计信息
+	lastNetStats map[string]net.IOCountersStat
+	lastNetTime  time.Time
+	// 用于平滑处理的网速历史数据
+	uploadSpeedHistory   []float64
+	downloadSpeedHistory []float64
+	// 网速历史数据窗口大小
+	speedHistorySize = 3
 )
 
 // 系统指标结构
 type Metrics struct {
-	CPU       float64 `json:"cpu"`
-	Memory    float64 `json:"memory"`
-	DiskUsage float64 `json:"diskUsage"`
+	CPU           float64 `json:"cpu"`
+	Memory        float64 `json:"memory"`
+	DiskUsage     float64 `json:"diskUsage"`
+	UploadSpeed   float64 `json:"uploadSpeed"`   // 上传网速 (KB/s)
+	DownloadSpeed float64 `json:"downloadSpeed"` // 下载网速 (KB/s)
 }
 
 func main() {
@@ -33,6 +44,12 @@ func main() {
 	if *clientID == "" {
 		log.Fatal("请提供客户端ID")
 	}
+
+	// 初始化网络统计数据
+	initNetStats()
+	// 初始化网速历史数据
+	uploadSpeedHistory = make([]float64, 0, speedHistorySize)
+	downloadSpeedHistory = make([]float64, 0, speedHistorySize)
 
 	log.Printf("客户端启动，连接到服务器：%s，客户端ID：%s", *serverAddr, *clientID)
 
@@ -65,8 +82,11 @@ func main() {
 
 	log.Println("成功连接到服务器")
 
+	// 启动单独的goroutine来收集网速数据，更频繁地采样
+	go collectNetworkSpeedData()
+
 	// 定时发送系统指标
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(500 * time.Millisecond) // 改为500毫秒发送一次，更新更频繁
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -82,6 +102,102 @@ func main() {
 			reconnect(u.String())
 			break
 		}
+	}
+}
+
+// 初始化网络统计数据
+func initNetStats() {
+	// 获取所有网络接口的IO统计信息
+	stats, err := net.IOCounters(true)
+	if err != nil {
+		log.Printf("初始化网络统计数据失败: %v", err)
+		return
+	}
+
+	// 转换为map以便查找
+	lastNetStats = make(map[string]net.IOCountersStat)
+	for _, stat := range stats {
+		lastNetStats[stat.Name] = stat
+	}
+	lastNetTime = time.Now()
+
+	log.Println("网络统计数据初始化完成")
+}
+
+// 单独收集网络速度数据，采样更频繁
+func collectNetworkSpeedData() {
+	ticker := time.NewTicker(200 * time.Millisecond) // 每200毫秒采样一次网络数据
+	defer ticker.Stop()
+
+	for range ticker.C {
+		// 获取当前网络统计数据
+		currentStats, err := net.IOCounters(true)
+		if err != nil {
+			log.Printf("获取网络统计信息失败: %v", err)
+			continue
+		}
+
+		now := time.Now()
+		elapsedSec := now.Sub(lastNetTime).Seconds()
+
+		if elapsedSec > 0 && len(lastNetStats) > 0 {
+			var totalBytesRecv uint64
+			var totalBytesSent uint64
+			var lastBytesRecv uint64
+			var lastBytesSent uint64
+
+			// 汇总所有接口的流量
+			for _, stat := range currentStats {
+				totalBytesRecv += stat.BytesRecv
+				totalBytesSent += stat.BytesSent
+
+				if lastStat, ok := lastNetStats[stat.Name]; ok {
+					lastBytesRecv += lastStat.BytesRecv
+					lastBytesSent += lastStat.BytesSent
+				}
+			}
+
+			// 计算即时速率 (KB/s)
+			var downloadSpeed, uploadSpeed float64
+
+			// 处理计数器重置的情况
+			if totalBytesRecv >= lastBytesRecv {
+				downloadSpeed = float64(totalBytesRecv-lastBytesRecv) / elapsedSec / 1024
+			} else {
+				// 只在计数器重置时输出日志
+				log.Printf("检测到接收计数器重置")
+				downloadSpeed = float64(totalBytesRecv) / elapsedSec / 1024
+			}
+
+			if totalBytesSent >= lastBytesSent {
+				uploadSpeed = float64(totalBytesSent-lastBytesSent) / elapsedSec / 1024
+			} else {
+				// 只在计数器重置时输出日志
+				log.Printf("检测到发送计数器重置")
+				uploadSpeed = float64(totalBytesSent) / elapsedSec / 1024
+			}
+
+			// 更新历史数据队列
+			if len(downloadSpeedHistory) >= speedHistorySize {
+				downloadSpeedHistory = downloadSpeedHistory[1:]
+			}
+			downloadSpeedHistory = append(downloadSpeedHistory, downloadSpeed)
+
+			if len(uploadSpeedHistory) >= speedHistorySize {
+				uploadSpeedHistory = uploadSpeedHistory[1:]
+			}
+			uploadSpeedHistory = append(uploadSpeedHistory, uploadSpeed)
+
+			// 禁用瞬时网速日志输出，减少控制台输出量
+			// log.Printf("瞬时下载速度: %.2f KB/s, 瞬时上传速度: %.2f KB/s", downloadSpeed, uploadSpeed)
+		}
+
+		// 更新统计数据以备下次使用
+		lastNetStats = make(map[string]net.IOCountersStat)
+		for _, stat := range currentStats {
+			lastNetStats[stat.Name] = stat
+		}
+		lastNetTime = now
 	}
 }
 
@@ -131,6 +247,39 @@ func collectMetrics() (Metrics, error) {
 	if totalSpace > 0 {
 		// 计算总体使用率
 		metrics.DiskUsage = float64(usedSpace) * 100.0 / float64(totalSpace)
+	}
+
+	// 使用历史数据计算平滑的网速
+	if len(downloadSpeedHistory) > 0 {
+		// 计算平均值
+		var sum float64
+		for _, v := range downloadSpeedHistory {
+			sum += v
+		}
+		// 偏向最新数据的加权平均
+		if len(downloadSpeedHistory) >= 2 {
+			// 最新数据权重更高
+			metrics.DownloadSpeed = (downloadSpeedHistory[len(downloadSpeedHistory)-1] * 0.7) +
+				(sum / float64(len(downloadSpeedHistory)) * 0.3)
+		} else {
+			metrics.DownloadSpeed = sum / float64(len(downloadSpeedHistory))
+		}
+	}
+
+	if len(uploadSpeedHistory) > 0 {
+		// 计算平均值
+		var sum float64
+		for _, v := range uploadSpeedHistory {
+			sum += v
+		}
+		// 偏向最新数据的加权平均
+		if len(uploadSpeedHistory) >= 2 {
+			// 最新数据权重更高
+			metrics.UploadSpeed = (uploadSpeedHistory[len(uploadSpeedHistory)-1] * 0.7) +
+				(sum / float64(len(uploadSpeedHistory)) * 0.3)
+		} else {
+			metrics.UploadSpeed = sum / float64(len(uploadSpeedHistory))
+		}
 	}
 
 	return metrics, nil

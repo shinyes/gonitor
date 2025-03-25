@@ -185,6 +185,30 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <div class="metric">
+                                        <div class="metric-header">
+                                            <span class="metric-name">上传速度</span>
+                                            <span class="metric-value">{{ formatNetworkSpeed(element.uploadSpeed) }}</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar progress-info"
+                                                :style="{width: getNetworkSpeedPercent(element.uploadSpeed) + '%'}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="metric">
+                                        <div class="metric-header">
+                                            <span class="metric-name">下载速度</span>
+                                            <span class="metric-value">{{ formatNetworkSpeed(element.downloadSpeed) }}</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar progress-info"
+                                                :style="{width: getNetworkSpeedPercent(element.downloadSpeed) + '%'}">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </template>

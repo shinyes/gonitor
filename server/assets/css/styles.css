@@ -237,6 +237,10 @@ body {
     background-color: var(--high-usage);
 }
 
+.progress-info {
+    background-color: var(--info);
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
