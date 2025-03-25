@@ -200,13 +200,15 @@
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
-                                                    <span class="metric-name">硬盘</span>
-                                                    <div class="d-flex flex-column">
-                                                        <div>
-                                                            <span>↑ {{ formatNetworkSpeed(element.diskReadSpeed) }}</span>
+                                                    <span class="metric-name">网速</span>
+                                                    <div class="d-flex flex-column w-100">
+                                                        <div class="speed-row">
+                                                            <div class="speed-icon"><i class="bi bi-arrow-up"></i></div>
+                                                            <div class="speed-value">{{ formatNetworkSpeed(element.uploadSpeed) }}</div>
                                                         </div>
-                                                        <div>
-                                                            <span>↓ {{ formatNetworkSpeed(element.diskWriteSpeed) }}</span>
+                                                        <div class="speed-row">
+                                                            <div class="speed-icon"><i class="bi bi-arrow-down"></i></div>
+                                                            <div class="speed-value">{{ formatNetworkSpeed(element.downloadSpeed) }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -216,13 +218,15 @@
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
-                                                    <span class="metric-name">网速</span>
-                                                    <div class="d-flex flex-column">
-                                                        <div>
-                                                            <span>↑ {{ formatNetworkSpeed(element.uploadSpeed) }}</span>
+                                                    <span class="metric-name">硬盘</span>
+                                                    <div class="d-flex flex-column w-100">
+                                                        <div class="speed-row">
+                                                            <div class="speed-icon"><i class="bi bi-arrow-up"></i></div>
+                                                            <div class="speed-value">{{ formatNetworkSpeed(element.diskReadSpeed) }}</div>
                                                         </div>
-                                                        <div>
-                                                            <span>↓ {{ formatNetworkSpeed(element.downloadSpeed) }}</span>
+                                                        <div class="speed-row">
+                                                            <div class="speed-icon"><i class="bi bi-arrow-down"></i></div>
+                                                            <div class="speed-value">{{ formatNetworkSpeed(element.diskWriteSpeed) }}</div>
                                                         </div>
                                                     </div>
                                                 </div>

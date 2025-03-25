@@ -306,9 +306,9 @@ const app = createApp({
         // 格式化网络速度显示
         const formatNetworkSpeed = (speed) => {
             if (speed >= 1024) {
-                return (speed / 1024).toFixed(2) + ' MB/s';
+                return (speed / 1024).toFixed(1) + ' MB/s';
             } else {
-                return speed.toFixed(2) + ' KB/s';
+                return speed.toFixed(1) + ' KB/s';
             }
         };
         

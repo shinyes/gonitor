@@ -195,10 +195,12 @@ body {
     margin-bottom: 0;
 }
 
+/* 硬盘和网速指标的样式 */
 .metric-header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.2rem;
+    align-items: center;
 }
 
 .metric-name {
@@ -210,6 +212,40 @@ body {
 .metric-value {
     font-weight: 600;
     font-size: 0.85rem;
+}
+
+/* 硬盘和网速指标的样式 */
+.metric-header .d-flex.flex-column {
+    flex: 1;
+}
+
+.speed-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+    justify-content: flex-end;
+}
+
+.speed-row:last-child {
+    margin-bottom: 0;
+}
+
+.speed-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray);
+    font-size: 0.8rem;
+    margin-right: 4px;
+    width: auto;
+}
+
+.speed-value {
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    width: 70px;
+    text-align: right;
 }
 
 /* Progress Bars */
