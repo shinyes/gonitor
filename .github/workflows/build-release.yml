@@ -46,7 +46,7 @@ jobs:
     - name: Package server binaries with assets
       run: |
         mkdir -p release
-        tar -cf release/gonitor-server-${{ steps.read_version.outputs.version }}.tar bin/gonitor-server-linux-amd64 bin/gonitor-server-linux-arm64 bin/gonitor-server-windows-amd64.exe assets templates
+        tar -cf release/gonitor-server-${{ steps.read_version.outputs.version }}.tar bin/gonitor-server-linux-amd64 bin/gonitor-server-linux-arm64 bin/gonitor-server-windows-amd64.exe server/assets server/templates
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v2
