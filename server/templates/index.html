@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,28 +17,30 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        [v-cloak] { display: none; }
+        [v-cloak] {
+            display: none;
+        }
     </style>
     <script>
         // 初始化主题
-        (function() {
+        (function () {
             function getSystemTheme() {
                 return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            
+
             function applyTheme(theme) {
                 if (theme === 'auto') {
                     theme = getSystemTheme();
                 }
                 document.documentElement.setAttribute('data-theme', theme);
             }
-            
+
             // 从localStorage获取主题设置
             const savedTheme = localStorage.getItem('theme') || 'auto';
-            
+
             // 立即应用主题
             applyTheme(savedTheme);
-            
+
             // 监听系统主题变化
             if (window.matchMedia) {
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
@@ -48,7 +51,7 @@
                 });
             }
         })();
-        
+
         function copyClientIdWithEffect(button) {
             const clientId = document.querySelector('#clientIdModal code').textContent;
             navigator.clipboard.writeText(clientId).then(() => {
@@ -56,7 +59,7 @@
                 button.innerHTML = '<i class="bi bi-check2"></i><span>已复制</span>';
                 button.style.color = 'var(--success)';
                 button.style.borderColor = 'var(--success)';
-                
+
                 setTimeout(() => {
                     button.innerHTML = originalContent;
                     button.style.color = '';
@@ -66,7 +69,7 @@
                 console.error('复制失败:', err);
             });
         }
-        
+
         function copyCommand(button) {
             const command = button.parentElement.querySelector('code').textContent;
             navigator.clipboard.writeText(command).then(() => {
@@ -74,7 +77,7 @@
                 button.innerHTML = '<i class="bi bi-check2"></i><span>已复制</span>';
                 button.style.color = 'var(--success)';
                 button.style.borderColor = 'var(--success)';
-                
+
                 setTimeout(() => {
                     button.innerHTML = originalContent;
                     button.style.color = '';
@@ -86,6 +89,7 @@
         }
     </script>
 </head>
+
 <body>
     <div class="wrapper" id="app" v-cloak>
         <!-- 顶部通知提示 -->
@@ -95,7 +99,7 @@
                 <span>{{ notification.message }}</span>
             </div>
         </div>
-        
+
         <header class="navbar navbar-dark px-4 py-3">
             <div class="container-fluid d-flex justify-content-between align-items-center">
                 <a class="navbar-brand d-flex align-items-center" href="#">
@@ -107,14 +111,20 @@
                         <i class="bi bi-box-arrow-in-right me-1"></i>登录
                     </button>
                     <div v-else class="dropdown">
-                        <button class="btn btn-avatar" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-avatar" type="button" id="userMenu" data-bs-toggle="dropdown"
+                            aria-expanded="false">
                             <i class="bi bi-gear"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                            <li><a class="dropdown-item" href="#" @click="showAddClientModal"><i class="bi bi-plus-circle-fill me-2"></i>添加客户端</a></li>
-                            <li><a class="dropdown-item" href="#" @click="showSortClientsModal"><i class="bi bi-sort-down me-2"></i>排序客户端</a></li>
-                            <li><a class="dropdown-item" href="#" @click="showSettingsModal"><i class="bi bi-gear-fill me-2"></i>账号设置</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" @click="showAddClientModal"><i
+                                        class="bi bi-plus-circle-fill me-2"></i>添加客户端</a></li>
+                            <li><a class="dropdown-item" href="#" @click="showSortClientsModal"><i
+                                        class="bi bi-sort-down me-2"></i>排序客户端</a></li>
+                            <li><a class="dropdown-item" href="#" @click="showSettingsModal"><i
+                                        class="bi bi-gear-fill me-2"></i>账号设置</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li>
                                 <div class="dropdown-item">
                                     <div class="d-flex align-items-center mb-1">
@@ -122,20 +132,26 @@
                                         <span>主题模式</span>
                                     </div>
                                     <div class="theme-toggle-group">
-                                        <button @click="setTheme('auto')" class="theme-btn" :class="{ active: currentTheme === 'auto' }" title="自动模式">
+                                        <button @click="setTheme('auto')" class="theme-btn"
+                                            :class="{ active: currentTheme === 'auto' }" title="自动模式">
                                             <i class="bi bi-circle-half"></i>
                                         </button>
-                                        <button @click="setTheme('light')" class="theme-btn" :class="{ active: currentTheme === 'light' }" title="浅色模式">
+                                        <button @click="setTheme('light')" class="theme-btn"
+                                            :class="{ active: currentTheme === 'light' }" title="浅色模式">
                                             <i class="bi bi-sun-fill"></i>
                                         </button>
-                                        <button @click="setTheme('dark')" class="theme-btn" :class="{ active: currentTheme === 'dark' }" title="深色模式">
+                                        <button @click="setTheme('dark')" class="theme-btn"
+                                            :class="{ active: currentTheme === 'dark' }" title="深色模式">
                                             <i class="bi bi-moon-stars-fill"></i>
                                         </button>
                                     </div>
                                 </div>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" @click="logout"><i class="bi bi-box-arrow-right me-2"></i>登出</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" @click="logout"><i
+                                        class="bi bi-box-arrow-right me-2"></i>登出</a></li>
                         </ul>
                     </div>
                 </div>
@@ -145,12 +161,8 @@
         <main class="main-content">
             <div class="container-fluid py-4">
                 <div v-if="clients.length > 0">
-                    <draggable v-model="clients" 
-                               class="server-grid" 
-                               v-bind="dragOptions" 
-                               @change="onDragChange"
-                               :disabled="!isLoggedIn"
-                               item-key="id">
+                    <draggable v-model="clients" class="server-grid" v-bind="dragOptions" @change="onDragChange"
+                        :disabled="!isLoggedIn" item-key="id">
                         <template #item="{element}">
                             <div class="server-card">
                                 <div class="server-card-header">
@@ -159,7 +171,8 @@
                                         <h3 class="server-name">{{ element.name }}</h3>
                                     </div>
                                     <div v-if="isLoggedIn" class="dropdown">
-                                        <button class="btn btn-icon" type="button" id="clientMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn btn-icon" type="button" id="clientMenu"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-three-dots"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientMenu">
@@ -168,18 +181,26 @@
                                                     <div class="d-flex align-items-center">
                                                         <i class="bi bi-key-fill me-2 text-secondary"></i>
                                                         <span>客户端标识：</span>
-                                                        <span class="client-id ms-1" @click="copyToClipboard(element.id, $event)">{{ element.id }}</span>
+                                                        <span class="client-id ms-1"
+                                                            @click="copyToClipboard(element.id, $event)">{{ element.id
+                                                            }}</span>
                                                     </div>
                                                 </div>
                                             </li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" href="#" @click="showRenameClientModal(element)">
-                                                <i class="bi bi-pencil-fill me-2"></i>重命名
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="#" @click="confirmDeleteClient(element)">
-                                                <i class="bi bi-trash3-fill"></i>删除
-                                            </a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li><a class="dropdown-item" href="#"
+                                                    @click="showRenameClientModal(element)">
+                                                    <i class="bi bi-pencil-fill me-2"></i>重命名
+                                                </a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li><a class="dropdown-item text-danger" href="#"
+                                                    @click="confirmDeleteClient(element)">
+                                                    <i class="bi bi-trash3-fill"></i>删除
+                                                </a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -192,14 +213,13 @@
                                                     <span class="metric-value">{{ element.cpu.toFixed(1) }}%</span>
                                                 </div>
                                                 <div class="progress">
-                                                    <div class="progress-bar"
-                                                        :class="getProgressBarClass(element.cpu)"
+                                                    <div class="progress-bar" :class="getProgressBarClass(element.cpu)"
                                                         :style="{width: element.cpu + '%'}">
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
@@ -214,12 +234,13 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
                                                     <span class="metric-name">存储</span>
-                                                    <span class="metric-value">{{ element.diskUsage.toFixed(1) }}%</span>
+                                                    <span class="metric-value">{{ element.diskUsage.toFixed(1)
+                                                        }}%</span>
                                                 </div>
                                                 <div class="progress">
                                                     <div class="progress-bar"
@@ -229,7 +250,25 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
+                                        <div class="metric-col">
+                                            <div class="metric">
+                                                <div class="metric-header">
+                                                    <span class="metric-name"></span>
+                                                    <div class="d-flex flex-column w-100">
+                                                        <div class="speed-row">
+                                                            <div class="speed-icon"></div>
+                                                            <div class="speed-value"></div>
+                                                        </div>
+                                                        <div class="speed-row">
+                                                            <div class="speed-icon"></div>
+                                                            <div class="speed-value"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
@@ -237,17 +276,20 @@
                                                     <div class="d-flex flex-column w-100">
                                                         <div class="speed-row">
                                                             <div class="speed-icon"><i class="bi bi-arrow-up"></i></div>
-                                                            <div class="speed-value">{{ formatNetworkSpeed(element.uploadSpeed) }}</div>
+                                                            <div class="speed-value">{{
+                                                                formatNetworkSpeed(element.uploadSpeed) }}</div>
                                                         </div>
                                                         <div class="speed-row">
-                                                            <div class="speed-icon"><i class="bi bi-arrow-down"></i></div>
-                                                            <div class="speed-value">{{ formatNetworkSpeed(element.downloadSpeed) }}</div>
+                                                            <div class="speed-icon"><i class="bi bi-arrow-down"></i>
+                                                            </div>
+                                                            <div class="speed-value">{{
+                                                                formatNetworkSpeed(element.downloadSpeed) }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="metric-col">
                                             <div class="metric">
                                                 <div class="metric-header">
@@ -255,11 +297,14 @@
                                                     <div class="d-flex flex-column w-100">
                                                         <div class="speed-row">
                                                             <div class="speed-icon"><i class="bi bi-arrow-up"></i></div>
-                                                            <div class="speed-value">{{ formatNetworkSpeed(element.diskReadSpeed) }}</div>
+                                                            <div class="speed-value">{{
+                                                                formatNetworkSpeed(element.diskReadSpeed) }}</div>
                                                         </div>
                                                         <div class="speed-row">
-                                                            <div class="speed-icon"><i class="bi bi-arrow-down"></i></div>
-                                                            <div class="speed-value">{{ formatNetworkSpeed(element.diskWriteSpeed) }}</div>
+                                                            <div class="speed-icon"><i class="bi bi-arrow-down"></i>
+                                                            </div>
+                                                            <div class="speed-value">{{
+                                                                formatNetworkSpeed(element.diskWriteSpeed) }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -271,7 +316,7 @@
                         </template>
                     </draggable>
                 </div>
-                
+
                 <div class="empty-state" v-else-if="clientsLoaded">
                     <div class="empty-state-icon">
                         <i class="bi bi-server"></i>
@@ -280,7 +325,7 @@
                     <p class="empty-state-text" v-if="isLoggedIn">点击"添加客户端"按钮开始监控</p>
                     <p class="empty-state-text" v-else>请登录后添加客户端</p>
                 </div>
-                
+
                 <!-- 加载中提示 -->
                 <div class="loading-state" v-else>
                     <div class="spinner-border text-primary" role="status">
@@ -312,7 +357,8 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary" @click="login" :disabled="isLoggingIn">
-                            <span v-if="isLoggingIn" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span v-if="isLoggingIn" class="spinner-border spinner-border-sm me-1" role="status"
+                                aria-hidden="true"></span>
                             登录
                         </button>
                     </div>
@@ -331,27 +377,33 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="settingUsername" class="form-label">用户名</label>
-                            <input type="text" class="form-control" id="settingUsername" v-model="settingsForm.username">
+                            <input type="text" class="form-control" id="settingUsername"
+                                v-model="settingsForm.username">
                         </div>
                         <div class="mb-3">
                             <label for="oldPassword" class="form-label">原密码</label>
-                            <input type="password" class="form-control" id="oldPassword" v-model="settingsForm.oldPassword">
+                            <input type="password" class="form-control" id="oldPassword"
+                                v-model="settingsForm.oldPassword">
                         </div>
                         <div class="mb-3">
                             <label for="newPassword" class="form-label">新密码</label>
-                            <input type="password" class="form-control" id="newPassword" v-model="settingsForm.newPassword">
+                            <input type="password" class="form-control" id="newPassword"
+                                v-model="settingsForm.newPassword">
                         </div>
                         <div class="mb-3">
                             <label for="confirmPassword" class="form-label">确认密码</label>
-                            <input type="password" class="form-control" id="confirmPassword" v-model="settingsForm.confirmPassword">
+                            <input type="password" class="form-control" id="confirmPassword"
+                                v-model="settingsForm.confirmPassword">
                         </div>
                         <div class="alert alert-danger" v-if="settingsError">{{ settingsError }}</div>
                         <div class="alert alert-success" v-if="settingsSuccess">{{ settingsSuccess }}</div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-primary" @click="saveSettings" :disabled="isSavingSettings">
-                            <span v-if="isSavingSettings" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        <button type="button" class="btn btn-primary" @click="saveSettings"
+                            :disabled="isSavingSettings">
+                            <span v-if="isSavingSettings" class="spinner-border spinner-border-sm me-1" role="status"
+                                aria-hidden="true"></span>
                             保存
                         </button>
                     </div>
@@ -377,7 +429,8 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary" @click="addClient" :disabled="isAddingClient">
-                            <span v-if="isAddingClient" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span v-if="isAddingClient" class="spinner-border spinner-border-sm me-1" role="status"
+                                aria-hidden="true"></span>
                             添加
                         </button>
                     </div>
@@ -390,7 +443,8 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>确认删除</h5>
+                        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>确认删除
+                        </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" v-if="clientToDelete">
@@ -400,14 +454,15 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-danger" @click="deleteClient" :disabled="isDeletingClient">
-                            <span v-if="isDeletingClient" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span v-if="isDeletingClient" class="spinner-border spinner-border-sm me-1" role="status"
+                                aria-hidden="true"></span>
                             删除
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- 客户端ID展示模态框 -->
         <div class="modal fade" id="clientIdModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -455,7 +510,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- 客户端排序模态框 -->
         <div class="modal fade" id="sortClientsModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -467,16 +522,19 @@
                     <div class="modal-body">
                         <p>拖动客户端或使用上下按钮调整显示顺序。</p>
                         <ul class="manual-sort-list list-group">
-                            <li v-for="(client, index) in clientsForSort" :key="client.id" class="sort-item list-group-item d-flex align-items-center">
+                            <li v-for="(client, index) in clientsForSort" :key="client.id"
+                                class="sort-item list-group-item d-flex align-items-center">
                                 <div class="sort-content">
-                                    <div class="small-badge status-badge" :class="{'connected': client.connected}"></div>
+                                    <div class="small-badge status-badge" :class="{'connected': client.connected}">
+                                    </div>
                                     <span class="sort-name">{{ client.name }}</span>
                                 </div>
                                 <div class="sort-actions">
                                     <button class="btn btn-icon" @click="moveItemUp(index)" :disabled="index === 0">
                                         <i class="bi bi-arrow-up"></i>
                                     </button>
-                                    <button class="btn btn-icon" @click="moveItemDown(index)" :disabled="index === clientsForSort.length - 1">
+                                    <button class="btn btn-icon" @click="moveItemDown(index)"
+                                        :disabled="index === clientsForSort.length - 1">
                                         <i class="bi bi-arrow-down"></i>
                                     </button>
                                 </div>
@@ -485,15 +543,17 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-primary" @click="saveClientOrder" :disabled="isSortingClients">
-                            <span v-if="isSortingClients" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        <button type="button" class="btn btn-primary" @click="saveClientOrder"
+                            :disabled="isSortingClients">
+                            <span v-if="isSortingClients" class="spinner-border spinner-border-sm me-1" role="status"
+                                aria-hidden="true"></span>
                             保存
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- 客户端重命名模态框 -->
         <div class="modal fade" id="renameClientModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -512,7 +572,8 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary" @click="renameClient" :disabled="isRenaming">
-                            <span v-if="isRenaming" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span v-if="isRenaming" class="spinner-border spinner-border-sm me-1" role="status"
+                                aria-hidden="true"></span>
                             保存
                         </button>
                     </div>
@@ -526,4 +587,5 @@
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <script src="/assets/js/app.js"></script>
 </body>
+
 </html>
