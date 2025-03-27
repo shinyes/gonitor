@@ -3,3 +3,4 @@ client/client.exe
 server/data/clients.json
 server/data/clients.json
 server/data/clients.json
+server/data/user.json

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"runtime"
 	"time"
 
@@ -94,13 +93,13 @@ func main() {
 
 	log.Println("成功连接到服务器")
 
-	// 启动单独的goroutine来收集网速数据，更频繁地采样
+	// 启动单独的goroutine来收集网速数据
 	go collectNetworkSpeedData()
 	// 启动单独的goroutine来收集磁盘IO数据
 	go collectDiskIOData()
 
 	// 定时发送系统指标
-	ticker := time.NewTicker(500 * time.Millisecond) // 改为500毫秒发送一次，更新更频繁
+	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -112,7 +111,9 @@ func main() {
 
 		if err := conn.WriteJSON(metrics); err != nil {
 			log.Printf("发送数据失败: %v", err)
-			// 尝试重新连接
+			conn.Close()
+			ticker.Stop()
+			// 启动重连
 			reconnect(u.String())
 			break
 		}
@@ -422,24 +423,48 @@ func collectMetrics() (Metrics, error) {
 
 // 尝试重新连接
 func reconnect(serverUrl string) {
+	log.Println("连接断开，尝试重新连接...")
 	for {
-		log.Println("尝试重新连接服务器...")
+		// 重新初始化网络统计数据
+		initNetStats()
+		// 重新初始化磁盘IO统计数据
+		initDiskIOStats()
+		// 清空历史数据
+		uploadSpeedHistory = make([]float64, 0, speedHistorySize)
+		downloadSpeedHistory = make([]float64, 0, speedHistorySize)
+		diskReadHistory = make([]float64, 0, speedHistorySize)
+		diskWriteHistory = make([]float64, 0, speedHistorySize)
 
-		// 如果URL已经是正确的WebSocket格式(以ws://或wss://开头)，直接使用
-		if len(serverUrl) >= 5 && (serverUrl[:5] == "ws://" || serverUrl[:6] == "wss://") {
-			conn, _, err := websocket.DefaultDialer.Dial(serverUrl, nil)
-			if err != nil {
-				log.Printf("重新连接失败: %v，5秒后重试", err)
-				time.Sleep(5 * time.Second)
-				continue
-			}
-			log.Println("成功重新连接到服务器")
-			conn.Close() // 关闭连接，让main函数重新启动连接循环
-			os.Exit(0)   // 退出当前进程，由系统或守护进程重启
+		// 尝试重新连接
+		conn, _, err := websocket.DefaultDialer.Dial(serverUrl, nil)
+		if err != nil {
+			log.Printf("重新连接失败: %v，5秒后重试...", err)
+			time.Sleep(5 * time.Second)
+			continue
 		}
 
-		// 否则，应该是新的连接尝试，重启应用程序以重用主函数中的URL处理逻辑
-		log.Println("URL格式需要重新处理，重启应用程序...")
-		os.Exit(1) // 使用非零退出码以便监控系统知道这是一个错误
+		log.Println("重新连接成功")
+
+		// 启动单独的goroutine来收集网速数据
+		go collectNetworkSpeedData()
+		// 启动单独的goroutine来收集磁盘IO数据
+		go collectDiskIOData()
+
+		// 定时发送系统指标
+		ticker := time.NewTicker(500 * time.Millisecond)
+		for range ticker.C {
+			metrics, err := collectMetrics()
+			if err != nil {
+				log.Printf("收集系统指标失败: %v", err)
+				continue
+			}
+
+			if err := conn.WriteJSON(metrics); err != nil {
+				log.Printf("发送数据失败: %v", err)
+				conn.Close()
+				ticker.Stop()
+				break
+			}
+		}
 	}
 }
