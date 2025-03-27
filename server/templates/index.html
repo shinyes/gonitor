@@ -9,6 +9,9 @@
     <meta name="theme-color" content="#4361ee">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gonitor">
+    <link rel="manifest" href="/assets/manifest.json">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
     <title>Gonitor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -19,6 +22,28 @@
     <style>
         [v-cloak] {
             display: none;
+        }
+        .offline-notification {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background-color: var(--warning);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 0 0 8px 8px;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+        }
+        
+        .offline-notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .offline-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
     </style>
     <script>
@@ -92,6 +117,14 @@
 
 <body>
     <div class="wrapper" id="app" v-cloak>
+        <!-- 离线提示 -->
+        <div class="offline-notification" :class="{ show: isOffline }">
+            <div class="offline-content">
+                <i class="bi bi-wifi-off"></i>
+                <span>您当前处于离线状态</span>
+            </div>
+        </div>
+
         <!-- 顶部通知提示 -->
         <div class="global-notification" :class="{ show: notification.show }">
             <div class="notification-content" :class="notification.type">
@@ -586,6 +619,32 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.36/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <script src="/assets/js/app.js"></script>
+    <script>
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/assets/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // 检测在线状态
+        window.addEventListener('online', () => {
+            app.isOffline = false;
+        });
+        
+        window.addEventListener('offline', () => {
+            app.isOffline = true;
+        });
+        
+        // 初始化在线状态
+        app.isOffline = !navigator.onLine;
+    </script>
 </body>
 
 </html>
